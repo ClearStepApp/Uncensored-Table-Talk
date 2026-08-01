@@ -1,0 +1,4129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Statement Oracle — a social party game of perspectives, debates, and hot takes.">
+  <meta name="theme-color" content="#0f0f13">
+  <title>Statement Oracle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* === VARIABLES & BASE STYLES === */
+    :root {
+      --color-bg: #0f0f13;
+      --color-surface: #17171f;
+      --color-surface-2: #1e1e28;
+      --color-surface-3: #252530;
+      --color-border: #2a2a38;
+      --color-border-light: #35354a;
+
+      --color-primary: #7c6af7;
+      --color-primary-hover: #9080ff;
+      --color-primary-dim: rgba(124, 106, 247, 0.15);
+      --color-primary-glow: rgba(124, 106, 247, 0.25);
+
+      --color-accent-gold: #e8b84b;
+      --color-accent-gold-dim: rgba(232, 184, 75, 0.15);
+      --color-accent-teal: #3ecfb2;
+      --color-accent-teal-dim: rgba(62, 207, 178, 0.15);
+      --color-accent-rose: #f06b7a;
+      --color-accent-rose-dim: rgba(240, 107, 122, 0.15);
+      --color-accent-blue: #4fa3e8;
+      --color-accent-blue-dim: rgba(79, 163, 232, 0.15);
+      --color-accent-spicy: #ff5a36;
+      --color-accent-spicy-dim: rgba(255, 90, 54, 0.15);
+
+      --color-text-primary: #f0f0f5;
+      --color-text-secondary: #9898b0;
+      --color-text-muted: #5c5c78;
+
+      --color-success: #3ecfb2;
+      --color-warning: #e8b84b;
+      --color-danger: #f06b7a;
+
+      --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+      --spacing-xs: 8px;
+      --spacing-sm: 16px;
+      --spacing-md: 24px;
+      --spacing-lg: 32px;
+      --spacing-xl: 48px;
+      --spacing-2xl: 64px;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,0.5);
+      --shadow-glow: 0 0 24px var(--color-primary-glow);
+
+      --transition-fast: 150ms ease-in-out;
+      --transition-base: 220ms ease-in-out;
+      --transition-slow: 350ms ease-in-out;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      background-color: var(--color-bg);
+      color: var(--color-text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* === TYPOGRAPHY === */
+    h1, h2, h3, h4 {
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+    }
+
+    h1 { font-size: clamp(28px, 5vw, 42px); }
+    h2 { font-size: clamp(22px, 4vw, 30px); }
+    h3 { font-size: clamp(17px, 3vw, 22px); }
+    h4 { font-size: 16px; font-weight: 600; }
+
+    p { color: var(--color-text-secondary); line-height: 1.65; }
+
+    /* === LAYOUT === */
+    .app-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: var(--spacing-sm);
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* === NOISE TEXTURE OVERLAY === */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    .screen > * { position: relative; z-index: 1; }
+
+    /* === BUTTONS === */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 22px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: var(--font-primary);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      text-decoration: none;
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(124,106,247,0.3);
+    }
+
+    .btn-primary:hover {
+      background: var(--color-primary-hover);
+      box-shadow: 0 6px 24px rgba(124,106,247,0.45);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      background: var(--color-surface-3);
+      color: var(--color-text-primary);
+      border: 1px solid var(--color-border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--color-surface-2);
+      border-color: var(--color-border-light);
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--color-text-secondary);
+      border: 1px solid transparent;
+    }
+
+    .btn-ghost:hover {
+      color: var(--color-text-primary);
+      background: var(--color-surface-2);
+    }
+
+    .btn-danger {
+      background: var(--color-accent-rose-dim);
+      color: var(--color-accent-rose);
+      border: 1px solid rgba(240,107,122,0.3);
+    }
+
+    .btn-danger:hover {
+      background: rgba(240,107,122,0.25);
+    }
+
+    .btn-full { width: 100%; }
+
+    .btn-lg {
+      padding: 15px 28px;
+      font-size: 15px;
+    }
+
+    .btn-sm {
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border-radius: var(--radius-sm);
+    }
+
+    /* === CARDS === */
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+    }
+
+    .card-elevated {
+      background: var(--color-surface-2);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* === BADGE === */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .badge-purple { background: var(--color-primary-dim); color: var(--color-primary); }
+    .badge-gold { background: var(--color-accent-gold-dim); color: var(--color-accent-gold); }
+    .badge-teal { background: var(--color-accent-teal-dim); color: var(--color-accent-teal); }
+    .badge-rose { background: var(--color-accent-rose-dim); color: var(--color-accent-rose); }
+    .badge-blue { background: var(--color-accent-blue-dim); color: var(--color-accent-blue); }
+    .badge-spicy { background: var(--color-accent-spicy-dim); color: var(--color-accent-spicy); }
+
+    /* === DIVIDER === */
+    .divider {
+      height: 1px;
+      background: var(--color-border);
+      margin: var(--spacing-md) 0;
+    }
+
+    /* === FORM ELEMENTS === */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      letter-spacing: 0.03em;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      color: var(--color-text-primary);
+      font-family: var(--font-primary);
+      font-size: 14px;
+      padding: 11px 14px;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+      width: 100%;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px var(--color-primary-dim);
+    }
+
+    .form-input::placeholder,
+    .form-textarea::placeholder {
+      color: var(--color-text-muted);
+    }
+
+    .form-select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239898b0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    .form-select option { background: var(--color-surface-2); }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-hint {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      line-height: 1.4;
+    }
+
+    .form-error {
+      font-size: 12px;
+      color: var(--color-accent-rose);
+    }
+
+    /* === TOGGLE === */
+    .toggle-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-sm);
+    }
+
+    .toggle-info { flex: 1; }
+    .toggle-info .form-label { margin-bottom: 2px; }
+
+    .toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--color-surface-3);
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background var(--transition-base), border-color var(--transition-base);
+    }
+
+    .toggle-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      background: var(--color-text-muted);
+      border-radius: 50%;
+      transition: transform var(--transition-base), background var(--transition-base);
+    }
+
+    .toggle input:checked + .toggle-track { background: var(--color-primary); border-color: var(--color-primary); }
+    .toggle input:checked ~ .toggle-thumb { transform: translateX(20px); background: #fff; }
+    .toggle input:focus-visible + .toggle-track { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+
+    /* ======================================================
+       SCREEN: HOME
+    ====================================================== */
+    #screen-home {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: var(--spacing-xl) var(--spacing-sm);
+      gap: var(--spacing-xl);
+    }
+
+    .home-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .home-logo {
+      width: 72px;
+      height: 72px;
+      background: var(--color-primary-dim);
+      border: 1px solid rgba(124,106,247,0.3);
+      border-radius: var(--radius-xl);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-shadow: var(--shadow-glow);
+    }
+
+    .home-title {
+      font-size: clamp(32px, 7vw, 52px);
+      background: linear-gradient(135deg, var(--color-text-primary) 0%, var(--color-primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .home-subtitle {
+      font-size: 15px;
+      color: var(--color-text-secondary);
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    .home-actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .home-stats {
+      display: flex;
+      gap: var(--spacing-lg);
+      justify-content: center;
+    }
+
+    .home-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .home-stat-number {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--color-primary);
+    }
+
+    .home-stat-label {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ======================================================
+       SCREEN: PLAYER SETUP
+    ====================================================== */
+    #screen-player-setup {
+      padding: var(--spacing-md);
+      gap: var(--spacing-md);
+    }
+
+    .setup-header {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) 0;
+    }
+
+    .setup-header h2 { flex: 1; font-size: 20px; }
+
+    .player-count-selector {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--spacing-xs);
+    }
+
+    .player-count-btn {
+      aspect-ratio: 1;
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      color: var(--color-text-secondary);
+      font-family: var(--font-primary);
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .player-count-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      background: var(--color-primary-dim);
+    }
+
+    .player-count-btn.selected {
+      border-color: var(--color-primary);
+      background: var(--color-primary-dim);
+      color: var(--color-primary);
+      box-shadow: 0 0 12px var(--color-primary-glow);
+    }
+
+    .player-count-btn:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .player-names-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-xs);
+    }
+
+    .player-name-field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .player-name-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    /* ======================================================
+       SCREEN: MODE SELECT
+    ====================================================== */
+    #screen-mode-select {
+      padding: var(--spacing-md);
+      gap: var(--spacing-md);
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--spacing-sm);
+    }
+
+    .mode-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-sm);
+      text-align: left;
+      width: 100%;
+      font-family: var(--font-primary);
+    }
+
+    .mode-card:hover {
+      border-color: var(--color-border-light);
+      background: var(--color-surface-2);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .mode-card:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .mode-card.mode-create {
+      border-style: dashed;
+      border-color: var(--color-border-light);
+    }
+
+    .mode-card.mode-create:hover {
+      border-color: var(--color-primary);
+      border-style: dashed;
+    }
+
+    .mode-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .mode-icon-purple { background: var(--color-primary-dim); }
+    .mode-icon-gold { background: var(--color-accent-gold-dim); }
+    .mode-icon-teal { background: var(--color-accent-teal-dim); }
+    .mode-icon-rose { background: var(--color-accent-rose-dim); }
+    .mode-icon-blue { background: var(--color-accent-blue-dim); }
+    .mode-icon-spicy { background: var(--color-accent-spicy-dim); }
+    .mode-icon-surface { background: var(--color-surface-3); border: 1px dashed var(--color-border-light); }
+
+    .mode-text { flex: 1; }
+    .mode-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: 4px;
+    }
+
+    .mode-desc {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .mode-arrow {
+      color: var(--color-text-muted);
+      font-size: 18px;
+      margin-top: 2px;
+      transition: transform var(--transition-fast);
+    }
+
+    .mode-card:hover .mode-arrow { transform: translateX(3px); }
+
+    /* === LOCKED / PREMIUM MODE CARDS === */
+    .mode-card.mode-locked {
+      cursor: pointer;
+      opacity: 0.62;
+    }
+
+    .mode-card.mode-locked:hover {
+      opacity: 0.85;
+      border-color: var(--color-accent-gold);
+      background: var(--color-surface);
+      transform: none;
+      box-shadow: none;
+    }
+
+    .mode-card.mode-locked .mode-icon {
+      filter: grayscale(0.6);
+    }
+
+    .mode-lock-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: var(--color-accent-gold-dim);
+      color: var(--color-accent-gold);
+      margin-left: 8px;
+      flex-shrink: 0;
+    }
+
+    .mode-name-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 2px;
+    }
+
+    /* === PREMIUM MODAL === */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 8, 12, 0.72);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-md);
+      z-index: 100;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border-light);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-lg);
+      max-width: 380px;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+
+    .modal-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--color-accent-gold-dim);
+      color: var(--color-accent-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin: 0 auto var(--spacing-sm);
+    }
+
+    .modal-card h3 {
+      margin-bottom: 8px;
+    }
+
+    .modal-card p {
+      font-size: 13.5px;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .modal-dev-note {
+      margin-top: var(--spacing-md);
+      padding-top: var(--spacing-sm);
+      border-top: 1px dashed var(--color-border);
+      font-size: 11px;
+      color: var(--color-text-muted);
+    }
+
+    .modal-dev-note button {
+      margin-top: 8px;
+      background: none;
+      border: none;
+      color: var(--color-text-muted);
+      text-decoration: underline;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: var(--font-primary);
+    }
+
+    .modal-dev-note button:hover {
+      color: var(--color-text-secondary);
+    }
+
+    /* ======================================================
+       SCREEN: RULES
+    ====================================================== */
+    #screen-rules {
+      padding: var(--spacing-md);
+      gap: var(--spacing-md);
+    }
+
+    .rules-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+
+    .rules-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+      padding: 0;
+      list-style: none;
+    }
+
+    .rules-list li {
+      display: flex;
+      gap: 12px;
+      padding: 12px var(--spacing-sm);
+      background: var(--color-surface-2);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+
+    .rules-list li .rule-num {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-primary);
+      background: var(--color-primary-dim);
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ======================================================
+       SCREEN: GAMEPLAY
+    ====================================================== */
+    #screen-gameplay {
+      padding: var(--spacing-sm);
+      gap: var(--spacing-sm);
+    }
+
+    .game-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--spacing-xs) 0;
+    }
+
+    .game-mode-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .game-round-badge {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      background: var(--color-surface-2);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--color-border);
+    }
+
+    /* Turn indicator */
+    .turn-indicator {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-sm) var(--spacing-md);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-sm);
+    }
+
+    .turn-player-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+
+    .turn-label {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+    }
+
+    .turn-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--color-primary-dim);
+      border: 2px solid var(--color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-primary);
+      flex-shrink: 0;
+    }
+
+    /* Statement card */
+    .statement-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-lg) var(--spacing-md);
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: var(--spacing-sm);
+      position: relative;
+      overflow: hidden;
+      transition: all var(--transition-base);
+    }
+
+    .statement-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 0%, var(--color-primary-dim) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .statement-category {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-text-muted);
+    }
+
+    .statement-text {
+      font-size: clamp(16px, 3.5vw, 20px);
+      font-weight: 600;
+      color: var(--color-text-primary);
+      line-height: 1.4;
+      letter-spacing: -0.01em;
+    }
+
+    .statement-placeholder {
+      font-size: 15px;
+      color: var(--color-text-muted);
+      font-style: italic;
+    }
+
+    /* Scoreboard */
+    .scoreboard {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .scoreboard-title {
+      padding: 12px var(--spacing-md);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .scoreboard-players {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1px;
+      background: var(--color-border);
+    }
+
+    .scoreboard-player {
+      background: var(--color-surface);
+      padding: 10px var(--spacing-sm);
+      flex: 1;
+      min-width: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .scoreboard-player.active-turn {
+      background: var(--color-primary-dim);
+    }
+
+    .scoreboard-player-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 70px;
+    }
+
+    .scoreboard-player.active-turn .scoreboard-player-name {
+      color: var(--color-primary);
+    }
+
+    .scoreboard-sips {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .scoreboard-sip-count {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--color-text-primary);
+      line-height: 1;
+    }
+
+    /* Game action zone */
+    .game-action-zone {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+
+    .action-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-xs);
+    }
+
+    .btn-defend {
+      background: var(--color-accent-teal-dim);
+      color: var(--color-accent-teal);
+      border: 1px solid rgba(62,207,178,0.3);
+      padding: 16px;
+      font-size: 15px;
+    }
+
+    .btn-defend:hover {
+      background: rgba(62,207,178,0.2);
+      transform: translateY(-1px);
+    }
+
+    .btn-sip {
+      background: var(--color-accent-rose-dim);
+      color: var(--color-accent-rose);
+      border: 1px solid rgba(240,107,122,0.3);
+      padding: 16px;
+      font-size: 15px;
+    }
+
+    .btn-sip:hover {
+      background: rgba(240,107,122,0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Timer */
+    .timer-ring-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-sm);
+    }
+
+    .timer-ring {
+      position: relative;
+      width: 90px;
+      height: 90px;
+    }
+
+    .timer-ring svg {
+      transform: rotate(-90deg);
+    }
+
+    .timer-ring-bg { fill: none; stroke: var(--color-surface-3); stroke-width: 6; }
+    .timer-ring-progress {
+      fill: none;
+      stroke: var(--color-primary);
+      stroke-width: 6;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear, stroke 0.3s;
+    }
+
+    .timer-number {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--color-text-primary);
+    }
+
+    .timer-label {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Vote section */
+    .vote-section {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .vote-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      text-align: center;
+    }
+
+    .vote-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-xs);
+    }
+
+    .btn-vote-pass {
+      background: var(--color-accent-teal-dim);
+      color: var(--color-accent-teal);
+      border: 1px solid rgba(62,207,178,0.25);
+    }
+
+    .btn-vote-pass:hover { background: rgba(62,207,178,0.2); }
+
+    .btn-vote-fail {
+      background: var(--color-accent-rose-dim);
+      color: var(--color-accent-rose);
+      border: 1px solid rgba(240,107,122,0.25);
+    }
+
+    .btn-vote-fail:hover { background: rgba(240,107,122,0.2); }
+
+    /* Agree-o-meter slider */
+    .agree-slider-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+      align-items: center;
+    }
+
+    .agree-slider {
+      width: 100%;
+      accent-color: var(--color-primary);
+      height: 6px;
+      cursor: pointer;
+    }
+
+    .agree-slider-labels {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      font-size: 11px;
+      color: var(--color-text-muted);
+    }
+
+    .agree-value-display {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--color-primary);
+      line-height: 1;
+    }
+
+    /* Cold/Hot take buttons */
+    .take-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-xs);
+    }
+
+    .btn-cold {
+      background: var(--color-accent-blue-dim);
+      color: var(--color-accent-blue);
+      border: 1px solid rgba(79,163,232,0.3);
+      padding: 18px;
+      font-size: 14px;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .btn-cold:hover { background: rgba(79,163,232,0.2); }
+
+    .btn-hot {
+      background: var(--color-accent-rose-dim);
+      color: var(--color-accent-rose);
+      border: 1px solid rgba(240,107,122,0.3);
+      padding: 18px;
+      font-size: 14px;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .btn-hot:hover { background: rgba(240,107,122,0.2); }
+
+    .take-btn-emoji { font-size: 22px; }
+
+    /* Reveal panel */
+    .reveal-panel {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .reveal-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .reveal-row:last-child { border-bottom: none; }
+
+    .reveal-player-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+
+    .reveal-choice {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .reveal-choice.cold { background: var(--color-accent-blue-dim); color: var(--color-accent-blue); }
+    .reveal-choice.hot { background: var(--color-accent-rose-dim); color: var(--color-accent-rose); }
+    .reveal-choice.agree { background: var(--color-accent-teal-dim); color: var(--color-accent-teal); }
+    .reveal-choice.disagree { background: var(--color-accent-rose-dim); color: var(--color-accent-rose); }
+    .reveal-choice.pending { background: var(--color-surface-3); color: var(--color-text-muted); }
+    .reveal-choice.defend { background: var(--color-accent-teal-dim); color: var(--color-accent-teal); }
+    .reveal-choice.sip { background: var(--color-accent-rose-dim); color: var(--color-accent-rose); }
+
+    /* Round result */
+    .round-result {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+
+    .round-result-emoji { font-size: 36px; }
+    .round-result-title { font-size: 18px; font-weight: 700; color: var(--color-text-primary); }
+    .round-result-desc { font-size: 14px; color: var(--color-text-secondary); margin: 0; }
+
+    /* Custom mode gameplay */
+    .custom-action-area {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .custom-sip-btn {
+      background: var(--color-accent-rose-dim);
+      color: var(--color-accent-rose);
+      border: 1px solid rgba(240,107,122,0.3);
+      padding: 14px;
+    }
+
+    .custom-sip-btn:hover { background: rgba(240,107,122,0.2); }
+
+    .custom-safe-btn {
+      background: var(--color-accent-teal-dim);
+      color: var(--color-accent-teal);
+      border: 1px solid rgba(62,207,178,0.3);
+      padding: 14px;
+    }
+
+    .custom-safe-btn:hover { background: rgba(62,207,178,0.2); }
+
+    /* ======================================================
+       SCREEN: CREATE MODE
+    ====================================================== */
+    #screen-create-mode {
+      padding: var(--spacing-md);
+      gap: var(--spacing-md);
+    }
+
+    .create-mode-header {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-xs) 0;
+    }
+
+    .create-mode-header h2 { flex: 1; font-size: 20px; }
+
+    .builder-section {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .builder-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+    }
+
+    /* Resolution type picker */
+    .resolution-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-xs);
+    }
+
+    .resolution-option {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-sm);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      text-align: left;
+      font-family: var(--font-primary);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .resolution-option:hover {
+      border-color: var(--color-primary);
+      background: var(--color-primary-dim);
+    }
+
+    .resolution-option.selected {
+      border-color: var(--color-primary);
+      background: var(--color-primary-dim);
+      box-shadow: 0 0 10px var(--color-primary-glow);
+    }
+
+    .resolution-option:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .resolution-icon { font-size: 20px; }
+    .resolution-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+    .resolution-desc {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    /* Win condition picker */
+    .win-condition-grid {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+
+    .win-condition-option {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 12px var(--spacing-sm);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      text-align: left;
+      font-family: var(--font-primary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .win-condition-option:hover {
+      border-color: var(--color-primary);
+    }
+
+    .win-condition-option.selected {
+      border-color: var(--color-primary);
+      background: var(--color-primary-dim);
+    }
+
+    .win-condition-option:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    .win-condition-radio {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid var(--color-border-light);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color var(--transition-fast);
+    }
+
+    .win-condition-option.selected .win-condition-radio {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+    }
+
+    .win-condition-option.selected .win-condition-radio::after {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #fff;
+    }
+
+    .win-condition-text { flex: 1; }
+    .win-condition-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+    .win-condition-sub {
+      font-size: 12px;
+      color: var(--color-text-muted);
+    }
+
+    /* Preview card */
+    .mode-preview {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .mode-preview-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+    }
+
+    .mode-preview-content {
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Saved custom modes list */
+    .saved-modes-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+
+    .saved-mode-item {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 12px var(--spacing-sm);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .saved-mode-item-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--color-surface-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .saved-mode-item-text { flex: 1; }
+    .saved-mode-item-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+
+    .saved-mode-item-sub {
+      font-size: 12px;
+      color: var(--color-text-muted);
+    }
+
+    .saved-mode-item-actions { display: flex; gap: 6px; }
+
+    /* ======================================================
+       SCREEN: END GAME
+    ====================================================== */
+    #screen-end {
+      padding: var(--spacing-md);
+      gap: var(--spacing-md);
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      min-height: 100vh;
+    }
+
+    .end-trophy { font-size: 56px; margin-bottom: var(--spacing-sm); }
+
+    .end-scoreboard {
+      width: 100%;
+      max-width: 480px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .end-score-row {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: 14px var(--spacing-md);
+      border-bottom: 1px solid var(--color-border);
+      transition: background var(--transition-fast);
+    }
+
+    .end-score-row:last-child { border-bottom: none; }
+
+    .end-score-row.winner { background: var(--color-primary-dim); }
+
+    .end-rank {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--color-text-muted);
+      width: 24px;
+      text-align: center;
+    }
+
+    .end-score-row.winner .end-rank { color: var(--color-accent-gold); }
+
+    .end-player-name {
+      flex: 1;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      text-align: left;
+    }
+
+    .end-sip-count {
+      font-size: 13px;
+      color: var(--color-accent-rose);
+      font-weight: 600;
+    }
+
+    .end-safe-count {
+      font-size: 13px;
+      color: var(--color-accent-teal);
+      font-weight: 600;
+    }
+
+    /* ======================================================
+       UTILITY CLASSES
+    ====================================================== */
+    .hidden { display: none !important; }
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+    }
+
+    .text-center { text-align: center; }
+    .text-muted { color: var(--color-text-muted); }
+    .text-secondary { color: var(--color-text-secondary); }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-xs { gap: var(--spacing-xs); }
+    .gap-sm { gap: var(--spacing-sm); }
+    .gap-md { gap: var(--spacing-md); }
+    .mt-sm { margin-top: var(--spacing-sm); }
+    .mt-md { margin-top: var(--spacing-md); }
+    .w-full { width: 100%; }
+
+    /* === TRANSITIONS / ANIMATIONS === */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    .animate-pulse { animation: pulse 1.5s ease-in-out infinite; }
+    .animate-shake { animation: shake 0.3s ease-in-out; }
+
+    /* === RESPONSIVE === */
+
+    /* Tablet: 640px and up */
+    @media (min-width: 640px) {
+      .screen { padding: var(--spacing-md); }
+      .mode-grid { grid-template-columns: 1fr 1fr; }
+      .player-count-selector { grid-template-columns: repeat(7, 1fr); }
+      .player-names-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    /* Desktop: 1024px and up */
+    @media (min-width: 1024px) {
+      .screen { padding: var(--spacing-xl) var(--spacing-md); }
+      #screen-home { padding: var(--spacing-2xl) var(--spacing-md); }
+    }
+
+    /* === SCROLLBAR === */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--color-bg); }
+    ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--color-border-light); }
+  </style>
+</head>
+
+<body>
+<div class="app-wrapper" id="app">
+
+  <!-- ============================================================
+       SCREEN: HOME
+  ============================================================ -->
+  <main id="screen-home" class="screen active" aria-label="Home screen">
+    <div class="home-brand">
+      <div class="home-logo" aria-hidden="true">🔮</div>
+      <h1 class="home-title">Statement Oracle</h1>
+      <p class="home-subtitle">A social game that reveals how your friends actually think.</p>
+    </div>
+
+    <div class="home-stats" aria-label="App statistics">
+      <div class="home-stat">
+        <span class="home-stat-number" id="stat-statements">180+</span>
+        <span class="home-stat-label">Statements</span>
+      </div>
+      <div class="home-stat">
+        <span class="home-stat-number">6</span>
+        <span class="home-stat-label">Game Modes</span>
+      </div>
+      <div class="home-stat">
+        <span class="home-stat-number">2–8</span>
+        <span class="home-stat-label">Players</span>
+      </div>
+    </div>
+
+    <div class="home-actions">
+      <button class="btn btn-primary btn-full btn-lg" id="btn-start-game" aria-label="Start a new game">
+        ▶ Start Game
+      </button>
+      <button class="btn btn-secondary btn-full" id="btn-create-mode-home" aria-label="Create a custom game mode">
+        ✦ Create Your Mode
+      </button>
+    </div>
+  </main>
+
+  <!-- ============================================================
+       SCREEN: PLAYER SETUP
+  ============================================================ -->
+  <section id="screen-player-setup" class="screen" aria-label="Player setup">
+    <div class="container">
+      <header class="setup-header">
+        <button class="btn btn-ghost btn-icon" id="btn-back-from-setup" aria-label="Go back to home">←</button>
+        <h2>Player Setup</h2>
+      </header>
+
+      <div class="card" style="display:flex;flex-direction:column;gap:var(--spacing-md);">
+        <div class="form-group">
+          <span class="form-label">How many players?</span>
+          <div class="player-count-selector" role="group" aria-label="Select number of players" id="player-count-selector">
+            <button class="player-count-btn" data-count="2" aria-label="2 players" aria-pressed="false">2</button>
+            <button class="player-count-btn" data-count="3" aria-label="3 players" aria-pressed="false">3</button>
+            <button class="player-count-btn" data-count="4" aria-label="4 players" aria-pressed="false">4</button>
+            <button class="player-count-btn" data-count="5" aria-label="5 players" aria-pressed="false">5</button>
+            <button class="player-count-btn" data-count="6" aria-label="6 players" aria-pressed="false">6</button>
+            <button class="player-count-btn" data-count="7" aria-label="7 players" aria-pressed="false">7</button>
+            <button class="player-count-btn" data-count="8" aria-label="8 players" aria-pressed="false">8</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <span class="form-label">Player names <span class="text-muted">(optional)</span></span>
+          <div class="player-names-grid" id="player-names-grid" aria-live="polite"></div>
+        </div>
+
+        <button class="btn btn-primary btn-full btn-lg" id="btn-confirm-players" disabled aria-label="Confirm players and choose game mode">
+          Choose Game Mode →
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: MODE SELECT
+  ============================================================ -->
+  <section id="screen-mode-select" class="screen" aria-label="Game mode selection">
+    <div class="container">
+      <header class="setup-header">
+        <button class="btn btn-ghost btn-icon" id="btn-back-from-modes" aria-label="Go back to player setup">←</button>
+        <h2>Choose a Mode</h2>
+      </header>
+
+      <nav class="mode-grid" aria-label="Game modes" id="mode-grid">
+        <!-- Built-in mode cards inserted by JS -->
+      </nav>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: RULES
+  ============================================================ -->
+  <section id="screen-rules" class="screen" aria-label="Mode rules">
+    <div class="container" style="display:flex;flex-direction:column;gap:var(--spacing-md);">
+      <header class="setup-header">
+        <button class="btn btn-ghost btn-icon" id="btn-back-from-rules" aria-label="Go back to mode selection">←</button>
+        <h2 id="rules-mode-name">Rules</h2>
+      </header>
+
+      <div class="card" style="display:flex;align-items:center;gap:var(--spacing-sm);">
+        <div class="rules-icon" id="rules-mode-icon" aria-hidden="true"></div>
+        <div>
+          <div id="rules-badge-container"></div>
+          <p id="rules-mode-desc" style="margin-top:6px;font-size:14px;"></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-text-muted);margin-bottom:var(--spacing-sm);">How to play</h3>
+        <ul class="rules-list" id="rules-list" aria-label="Game rules"></ul>
+      </div>
+
+      <button class="btn btn-primary btn-full btn-lg" id="btn-start-mode" aria-label="Start this game mode">
+        Let's Play →
+      </button>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: GAMEPLAY
+  ============================================================ -->
+  <section id="screen-gameplay" class="screen" aria-label="Gameplay">
+    <div class="container" style="display:flex;flex-direction:column;gap:var(--spacing-sm);flex:1;">
+
+      <header class="game-header">
+        <span class="game-mode-label" id="game-mode-label" aria-live="polite"></span>
+        <div style="display:flex;align-items:center;gap:var(--spacing-xs);">
+          <span class="game-round-badge" id="game-round-badge" aria-live="polite">Round 1</span>
+          <button class="btn btn-ghost btn-sm" id="btn-end-game" aria-label="End current game">End</button>
+        </div>
+      </header>
+
+      <!-- Scoreboard -->
+      <div class="scoreboard" aria-label="Player scores" role="region">
+        <div class="scoreboard-title">Players</div>
+        <div class="scoreboard-players" id="scoreboard-players"></div>
+      </div>
+
+      <!-- Turn indicator -->
+      <div class="turn-indicator" id="turn-indicator" aria-live="polite" aria-label="Current player's turn">
+        <div>
+          <div class="turn-label">Current Turn</div>
+          <div class="turn-player-name" id="turn-player-name">—</div>
+        </div>
+        <div class="turn-avatar" id="turn-avatar" aria-hidden="true">?</div>
+      </div>
+
+      <!-- Statement card -->
+      <div class="statement-card" id="statement-card" aria-live="polite" aria-label="Current statement">
+        <span class="statement-category" id="statement-category"></span>
+        <p class="statement-placeholder" id="statement-text">Press generate to reveal a statement</p>
+      </div>
+
+      <!-- Dynamic action zone — populated per mode -->
+      <div id="game-action-zone" class="game-action-zone" aria-label="Game actions"></div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: CREATE MODE
+  ============================================================ -->
+  <section id="screen-create-mode" class="screen" aria-label="Create a custom game mode">
+    <div class="container">
+      <header class="create-mode-header">
+        <button class="btn btn-ghost btn-icon" id="btn-back-from-create" aria-label="Go back">←</button>
+        <h2>Create Your Mode</h2>
+      </header>
+
+      <!-- Saved custom modes -->
+      <div id="saved-modes-section" class="hidden">
+        <h3 style="font-size:14px;font-weight:700;color:var(--color-text-secondary);margin-bottom:var(--spacing-xs);">Your Saved Modes</h3>
+        <div class="saved-modes-list" id="saved-modes-list" aria-label="Saved custom modes"></div>
+        <div class="divider"></div>
+      </div>
+
+      <h3 style="font-size:14px;font-weight:700;color:var(--color-text-secondary);margin-bottom:var(--spacing-sm);">Build a new mode</h3>
+
+      <!-- Section 1: Identity -->
+      <div class="builder-section" style="margin-bottom:var(--spacing-sm);">
+        <span class="builder-section-title">① Identity</span>
+
+        <div class="form-group">
+          <label class="form-label" for="create-mode-name">Mode name</label>
+          <input type="text" id="create-mode-name" class="form-input" placeholder="e.g. Truth Roulette" maxlength="40" aria-required="true">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="create-mode-emoji">Icon emoji</label>
+          <input type="text" id="create-mode-emoji" class="form-input" placeholder="e.g. 🎲" maxlength="4" style="font-size:20px;text-align:center;">
+          <span class="form-hint">Paste or type any single emoji</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="create-mode-desc">Short description</label>
+          <input type="text" id="create-mode-desc" class="form-input" placeholder="Describe your mode in one line" maxlength="80">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="create-mode-premise">Premise / How it works</label>
+          <textarea id="create-mode-premise" class="form-textarea" placeholder="Explain what happens each round. What do players do when a statement appears?" rows="3" maxlength="300" aria-describedby="premise-hint"></textarea>
+          <span class="form-hint" id="premise-hint">This text appears on the rules screen before the game starts.</span>
+        </div>
+      </div>
+
+      <!-- Section 2: Resolution type -->
+      <div class="builder-section" style="margin-bottom:var(--spacing-sm);">
+        <span class="builder-section-title">② How rounds resolve</span>
+        <p style="font-size:13px;color:var(--color-text-muted);margin-bottom:var(--spacing-xs);">This determines what controls appear during gameplay.</p>
+
+        <div class="resolution-grid" role="group" aria-label="Choose resolution type" id="resolution-type-grid">
+          <button class="resolution-option" data-type="vote" aria-pressed="false">
+            <span class="resolution-icon">🗳️</span>
+            <span class="resolution-label">Group Vote</span>
+            <p class="resolution-desc">Players vote together to decide who wins or loses the round.</p>
+          </button>
+          <button class="resolution-option" data-type="timer" aria-pressed="false">
+            <span class="resolution-icon">⏱️</span>
+            <span class="resolution-label">Timer</span>
+            <p class="resolution-desc">Player has a set time limit to complete a challenge.</p>
+          </button>
+          <button class="resolution-option" data-type="self" aria-pressed="false">
+            <span class="resolution-icon">👆</span>
+            <span class="resolution-label">Self-Declare</span>
+            <p class="resolution-desc">Each player decides for themselves if they sip or are safe.</p>
+          </button>
+          <button class="resolution-option" data-type="simultaneous" aria-pressed="false">
+            <span class="resolution-icon">⚡</span>
+            <span class="resolution-label">Simultaneous</span>
+            <p class="resolution-desc">All players answer at once, then reveal and compare.</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Section 3: Conditional config (shown based on resolution type) -->
+      <div class="builder-section" id="resolution-config-section" style="margin-bottom:var(--spacing-sm);">
+        <span class="builder-section-title">③ Configure</span>
+        <div id="resolution-config-content">
+          <p style="font-size:14px;color:var(--color-text-muted);font-style:italic;">Select a resolution type above to configure it.</p>
+        </div>
+      </div>
+
+      <!-- Section 4: Win condition -->
+      <div class="builder-section" style="margin-bottom:var(--spacing-sm);">
+        <span class="builder-section-title">④ Win condition</span>
+        <p style="font-size:13px;color:var(--color-text-muted);margin-bottom:var(--spacing-xs);">What does it mean to "win" a round?</p>
+
+        <div class="win-condition-grid" role="group" aria-label="Win condition" id="win-condition-grid">
+          <button class="win-condition-option" data-condition="fewest-sips" aria-pressed="false">
+            <div class="win-condition-radio"></div>
+            <div class="win-condition-text">
+              <div class="win-condition-label">Fewest sips wins</div>
+              <div class="win-condition-sub">The player who sips least at the end is the winner.</div>
+            </div>
+          </button>
+          <button class="win-condition-option" data-condition="most-points" aria-pressed="false">
+            <div class="win-condition-radio"></div>
+            <div class="win-condition-text">
+              <div class="win-condition-label">Most correct answers wins</div>
+              <div class="win-condition-sub">Points for safe rounds — highest total wins.</div>
+            </div>
+          </button>
+          <button class="win-condition-option" data-condition="survivor" aria-pressed="false">
+            <div class="win-condition-radio"></div>
+            <div class="win-condition-text">
+              <div class="win-condition-label">Last one standing</div>
+              <div class="win-condition-sub">Players are eliminated after a sip threshold.</div>
+            </div>
+          </button>
+          <button class="win-condition-option" data-condition="no-winner" aria-pressed="false">
+            <div class="win-condition-radio"></div>
+            <div class="win-condition-text">
+              <div class="win-condition-label">No winner (just vibes)</div>
+              <div class="win-condition-sub">Just play for fun — no formal scoring.</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Section 5: Turn structure -->
+      <div class="builder-section" style="margin-bottom:var(--spacing-sm);">
+        <span class="builder-section-title">⑤ Turn structure</span>
+
+        <div class="form-group">
+          <label class="form-label" for="create-mode-turns">How do turns work?</label>
+          <select id="create-mode-turns" class="form-select">
+            <option value="rotating">Rotating — one player per round, moves to next</option>
+            <option value="all">Everyone plays each round simultaneously</option>
+            <option value="random">Random player each round</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Live preview -->
+      <div class="mode-preview" style="margin-bottom:var(--spacing-sm);">
+        <span class="mode-preview-title">How this mode will appear in the rules screen</span>
+        <div class="mode-preview-content" id="mode-preview-content" aria-live="polite">Fill out the fields above to see a preview.</div>
+      </div>
+
+      <!-- Error -->
+      <div id="create-mode-error" class="form-error hidden" role="alert" aria-live="assertive" style="margin-bottom:var(--spacing-xs);"></div>
+
+      <button class="btn btn-primary btn-full btn-lg" id="btn-save-custom-mode" aria-label="Save custom game mode">
+        Save Mode
+      </button>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SCREEN: END GAME
+  ============================================================ -->
+  <section id="screen-end" class="screen" aria-label="Game over">
+    <div class="end-trophy" aria-hidden="true" id="end-trophy">🏆</div>
+    <h2 id="end-title">Game Over!</h2>
+    <p id="end-subtitle" style="font-size:15px;"></p>
+
+    <div class="end-scoreboard" id="end-scoreboard" aria-label="Final scores"></div>
+
+    <div style="display:flex;flex-direction:column;gap:var(--spacing-xs);width:100%;max-width:320px;margin-top:var(--spacing-sm);">
+      <button class="btn btn-primary btn-full" id="btn-play-again" aria-label="Play again with the same players">▶ Play Again</button>
+      <button class="btn btn-secondary btn-full" id="btn-home-from-end" aria-label="Return to home screen">← Home</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============================================================
+     PREMIUM LOCK MODAL
+============================================================ -->
+<div class="modal-overlay" id="premium-modal" role="dialog" aria-modal="true" aria-labelledby="premium-modal-title">
+  <div class="modal-card">
+    <div class="modal-icon" aria-hidden="true">🔒</div>
+    <h3 id="premium-modal-title">Premium Mode</h3>
+    <p id="premium-modal-body">This mode is part of Statement Oracle Premium. Unlock every game mode, Create Your Own Mode, and 200+ statements for a one-time $5.99.</p>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" id="btn-premium-modal-upgrade">Unlock Premium — $5.99</button>
+      <button class="btn btn-ghost btn-full" id="btn-premium-modal-close">Maybe later</button>
+    </div>
+    <div class="modal-dev-note">
+      Preview build — no payment is wired up yet.
+      <br>
+      <button id="btn-premium-dev-toggle" type="button">Simulate unlock (dev preview)</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ================================================================
+// === STATE ===
+// ================================================================
+const state = {
+  players: [],          // array of { name, sips, safes }
+  currentPlayerIndex: 0,
+  round: 1,
+  currentMode: null,    // mode object
+  currentStatement: null,
+  usedStatements: new Set(),
+  usedSpicyStatements: new Set(),
+  gamePhase: 'idle',    // idle | statement | action | vote | result | reveal
+  timerInterval: null,
+  timerSeconds: 0,
+  // Per-round data
+  roundChoices: {},     // { playerName: choice }
+  roundVotes: { pass: 0, fail: 0 },
+  customModes: [],      // persisted to localStorage
+  pendingCustomMode: null, // mode being built
+  premiumUnlocked: false, // gates non-free modes + Create Your Own; persisted to localStorage
+};
+
+// Modes available on the free tier — everything else requires Premium.
+const FREE_MODE_IDS = ['classic', 'cold-hot-take'];
+
+// ================================================================
+// === STATEMENT POOL ===
+// ================================================================
+const STATEMENTS = [
+  // PHILOSOPHY
+  { category: 'Philosophy', text: 'Free will is just determinism we haven\'t mapped yet.' },
+  { category: 'Philosophy', text: 'Consciousness is a problem science will never fully solve.' },
+  { category: 'Philosophy', text: 'Morality without religion is just preference with good PR.' },
+  { category: 'Philosophy', text: 'You cannot truly understand someone you\'ve never hated.' },
+  { category: 'Philosophy', text: 'The meaning of life is a question only the comfortable ask.' },
+  { category: 'Philosophy', text: 'Boredom is the most underrated form of suffering.' },
+  { category: 'Philosophy', text: 'Personal identity is mostly a story we tell ourselves.' },
+  { category: 'Philosophy', text: 'Most people do not actually want to be happy — they want to be comfortable.' },
+  { category: 'Philosophy', text: 'Rationality is just emotion with better branding.' },
+  { category: 'Philosophy', text: 'People who claim they have no regrets are either lying or have not lived enough.' },
+  { category: 'Philosophy', text: 'Truth and kindness are fundamentally incompatible at scale.' },
+  { category: 'Philosophy', text: 'We don\'t fear death — we fear being forgotten.' },
+  { category: 'Philosophy', text: 'Authenticity is impossible in a world that rewards performance.' },
+  { category: 'Philosophy', text: 'Most ethical frameworks collapse the moment they become inconvenient.' },
+  { category: 'Philosophy', text: 'The self is a habit, not a fixed thing.' },
+  { category: 'Philosophy', text: 'Humans are fundamentally tribal — everything else is layer over instinct.' },
+  { category: 'Philosophy', text: 'Justice and revenge are the same impulse in different clothes.' },
+  { category: 'Philosophy', text: 'Language doesn\'t describe reality — it creates it.' },
+  { category: 'Philosophy', text: 'People are not afraid of failure; they\'re afraid of wasted effort.' },
+  { category: 'Philosophy', text: 'Simulated experience is indistinguishable from real experience after long enough.' },
+
+  // RELATIONSHIPS
+  { category: 'Relationships', text: 'Most long-term relationships stay together out of inertia, not love.' },
+  { category: 'Relationships', text: 'Jealousy proves you care more than words ever could.' },
+  { category: 'Relationships', text: 'You never truly know someone until you\'ve lived with them for a year.' },
+  { category: 'Relationships', text: 'Unconditional love is a myth — all love has limits.' },
+  { category: 'Relationships', text: 'People fall in love with potential, not the person in front of them.' },
+  { category: 'Relationships', text: 'Social media has made friendship thinner and more abundant.' },
+  { category: 'Relationships', text: 'Honesty in relationships is often cruelty with good intentions.' },
+  { category: 'Relationships', text: 'Breakups are mostly about ego, not heartbreak.' },
+  { category: 'Relationships', text: 'A relationship without secrets is a relationship without privacy.' },
+  { category: 'Relationships', text: 'Most people settle in relationships because building something new is terrifying.' },
+  { category: 'Relationships', text: 'Admiration and attraction are not the same thing and people confuse them constantly.' },
+  { category: 'Relationships', text: 'You can love someone and still be completely wrong for them.' },
+  { category: 'Relationships', text: 'Vulnerability is a strategy, not just a feeling.' },
+  { category: 'Relationships', text: 'The person you are at 3am is the realest version of you.' },
+  { category: 'Relationships', text: 'Friendships that survive honesty are the only ones worth keeping.' },
+  { category: 'Relationships', text: 'Most people want to be listened to, not understood.' },
+  { category: 'Relationships', text: 'Distance rarely kills relationships — it just reveals which ones were already dying.' },
+  { category: 'Relationships', text: 'The need to be right destroys more relationships than infidelity.' },
+  { category: 'Relationships', text: 'We romanticize the past because we can edit it.' },
+  { category: 'Relationships', text: 'Children are the single biggest test of whether a relationship is real.' },
+
+  // SOCIETY
+  { category: 'Society', text: 'Meritocracy is a comforting story told by the people already winning.' },
+  { category: 'Society', text: 'Cancel culture is just public accountability with no due process.' },
+  { category: 'Society', text: 'Most people perform their values more than they live them.' },
+  { category: 'Society', text: 'Addiction is a health issue in every case — not a moral one.' },
+  { category: 'Society', text: 'The news is designed to make you feel fear, not understanding.' },
+  { category: 'Society', text: 'Wealth above a certain level is always built partly on exploitation.' },
+  { category: 'Society', text: 'Self-reliance is a virtue invented by people who had a safety net.' },
+  { category: 'Society', text: 'People who oppose wealth redistribution mostly just don\'t expect to need it.' },
+  { category: 'Society', text: 'Social norms are just group decisions masquerading as natural law.' },
+  { category: 'Society', text: 'Generational trauma is real, but it\'s also sometimes an excuse.' },
+  { category: 'Society', text: 'Privacy is already dead — we just haven\'t fully grieved it.' },
+  { category: 'Society', text: 'Most activism is driven by identity, not conviction.' },
+  { category: 'Society', text: 'Technology makes people more connected and lonelier at the same time.' },
+  { category: 'Society', text: 'Hustle culture is just unpaid overtime rebranded as purpose.' },
+  { category: 'Society', text: 'The criminal justice system is better at creating criminals than stopping crime.' },
+  { category: 'Society', text: 'People\'s opinions on homelessness completely change when it\'s visible to them.' },
+  { category: 'Society', text: 'Most people\'s political views are inherited, not chosen.' },
+  { category: 'Society', text: 'Comfort and complacency are the same thing past a certain point.' },
+  { category: 'Society', text: 'Influence is the new currency and most people are going broke.' },
+  { category: 'Society', text: 'Childhood is getting shorter with every generation.' },
+
+  // POLITICS — IDEOLOGICALLY BALANCED
+  { category: 'Politics', text: 'A strong national border is a basic requirement for a functioning country.' },
+  { category: 'Politics', text: 'Free speech absolutism is a luxury position that ignores harm at scale.' },
+  { category: 'Politics', text: 'Lower taxes encourage more productive behaviour than government spending.' },
+  { category: 'Politics', text: 'Universal basic income would reduce human dignity, not increase it.' },
+  { category: 'Politics', text: 'Open borders are an idealistic policy that ignores how labour markets actually work.' },
+  { category: 'Politics', text: 'The right to own a firearm is a fundamental individual right, not just an American idea.' },
+  { category: 'Politics', text: 'Proportional representation is more democratic than winner-takes-all systems.' },
+  { category: 'Politics', text: 'Western foreign policy has caused as much instability as it has resolved.' },
+  { category: 'Politics', text: 'Strong family structures reduce the need for state intervention.' },
+  { category: 'Politics', text: 'The welfare state creates dependency more than it alleviates poverty.' },
+  { category: 'Politics', text: 'Environmental regulation costs jobs in ways politicians won\'t admit.' },
+  { category: 'Politics', text: 'Affirmative action is a form of discrimination, regardless of intent.' },
+  { category: 'Politics', text: 'Democratic institutions are more fragile today than at any point in modern history.' },
+  { category: 'Politics', text: 'Free markets allocate resources better than governments do in almost every case.' },
+  { category: 'Politics', text: 'Nationalised healthcare produces worse outcomes than competitive systems.' },
+  { category: 'Politics', text: 'Public trust in government has collapsed because governments have earned it.' },
+  { category: 'Politics', text: 'Political correctness is a tool of social conformity dressed up as kindness.' },
+  { category: 'Politics', text: 'Corporations have too much influence over politics in every country.' },
+  { category: 'Politics', text: 'Term limits would improve the quality of democratic leadership.' },
+  { category: 'Politics', text: 'The current generation will be the first to leave a worse world than they inherited.' },
+  { category: 'Politics', text: 'Secularism in governance is not neutral — it advantages one worldview over others.' },
+  { category: 'Politics', text: 'The left has abandoned the working class and replaced them with identity politics.' },
+  { category: 'Politics', text: 'The right has confused nostalgia for tradition.' },
+  { category: 'Politics', text: 'Voting is a civic duty, not just a right.' },
+
+  // CULTURE
+  { category: 'Culture', text: 'Social media influencers are modern celebrities and deserve the same treatment.' },
+  { category: 'Culture', text: 'Nostalgia is a cultural disease that prevents innovation.' },
+  { category: 'Culture', text: 'Art made by AI is not real art.' },
+  { category: 'Culture', text: 'Celebrity culture is a symptom of a society that has lost its shared meaning.' },
+  { category: 'Culture', text: 'True originality is impossible — everything is remix.' },
+  { category: 'Culture', text: 'Sports fandom is tribalism with socially acceptable rules.' },
+  { category: 'Culture', text: 'Pop music is more technically complex than most people admit.' },
+  { category: 'Culture', text: 'Video games are the most important art form of the 21st century.' },
+  { category: 'Culture', text: 'The pandemic permanently changed what "normal" social interaction means.' },
+  { category: 'Culture', text: 'We consume entertainment as a coping mechanism more than enjoyment.' },
+  { category: 'Culture', text: 'True crime content glamorises violence while pretending to critique it.' },
+  { category: 'Culture', text: 'Fashion is the most honest art form because it\'s always about identity.' },
+  { category: 'Culture', text: 'Online discourse has made nuance almost impossible.' },
+  { category: 'Culture', text: 'Most people would be happier with less access to the internet.' },
+  { category: 'Culture', text: 'Irony is how people avoid committing to actual beliefs.' },
+  { category: 'Culture', text: 'The algorithm knows what you want better than you do.' },
+  { category: 'Culture', text: 'Streaming has made people worse at finishing things.' },
+  { category: 'Culture', text: 'A phone-free dinner is more intimate than one you document.' },
+  { category: 'Culture', text: 'We confuse access to information with understanding.' },
+  { category: 'Culture', text: 'Reading fiction makes you more empathetic than reading non-fiction.' },
+
+  // SELF & IDENTITY
+  { category: 'Self & Identity', text: 'Most people\'s personality is just their trauma, organised.' },
+  { category: 'Self & Identity', text: 'Your taste in music says more about you than your job does.' },
+  { category: 'Self & Identity', text: 'How you treat service workers is the truest measure of character.' },
+  { category: 'Self & Identity', text: 'People who say they don\'t care what others think are the most image-conscious people in the room.' },
+  { category: 'Self & Identity', text: 'You are the average of the five people you spend the most time with — and most people have chosen wrong.' },
+  { category: 'Self & Identity', text: 'Most people\'s ambitions are driven by fear of judgment, not genuine desire.' },
+  { category: 'Self & Identity', text: 'Knowing yourself is harder than knowing anyone else.' },
+  { category: 'Self & Identity', text: 'The things you judge most harshly in others are the things you hate about yourself.' },
+  { category: 'Self & Identity', text: 'Most people would choose comfort over growth in almost every real decision.' },
+  { category: 'Self & Identity', text: 'Who you are at work and who you are at home are two different people.' },
+  { category: 'Self & Identity', text: 'Ambition and insecurity are the same trait at different intensities.' },
+  { category: 'Self & Identity', text: 'Most people\'s sense of humour is just cruelty aimed at a socially acceptable target.' },
+  { category: 'Self & Identity', text: 'Discipline is not a personality trait — it\'s a situational skill.' },
+  { category: 'Self & Identity', text: 'People fundamentally cannot change who they are — only what they do.' },
+  { category: 'Self & Identity', text: 'The way you spend your time is a more honest autobiography than anything you\'d write.' },
+  { category: 'Self & Identity', text: 'Most people\'s "principles" disappear the moment they become expensive.' },
+  { category: 'Self & Identity', text: 'Self-improvement culture is just anxiety repackaged as ambition.' },
+  { category: 'Self & Identity', text: 'The version of you people remember is mostly their projection.' },
+  { category: 'Self & Identity', text: 'Your political views are mostly determined by geography and class, not reason.' },
+  { category: 'Self & Identity', text: 'Most people would rather appear good than be good.' },
+
+  // TECHNOLOGY
+  { category: 'Technology', text: 'AI will take more jobs than it creates — and that\'s not automatically bad.' },
+  { category: 'Technology', text: 'Social media companies should be regulated like utilities.' },
+  { category: 'Technology', text: 'The smartphone did more damage to society than any drug.' },
+  { category: 'Technology', text: 'Surveillance capitalism is the biggest unchecked threat of the current decade.' },
+  { category: 'Technology', text: 'Children under 13 should have no access to social media — legally enforced.' },
+  { category: 'Technology', text: 'Autonomous vehicles will eliminate more freedom than they create.' },
+  { category: 'Technology', text: 'Crypto was a solution looking for a problem it never found.' },
+  { category: 'Technology', text: 'The metaverse was a symptom of loneliness, not a cure.' },
+  { category: 'Technology', text: 'Working from home has made people worse at collaboration, not better.' },
+  { category: 'Technology', text: 'Most tech founders are motivated by legacy, not problem-solving.' },
+  { category: 'Technology', text: 'The internet has made the average person more confused, not more informed.' },
+  { category: 'Technology', text: 'Automation should come with a social contract — it currently doesn\'t.' },
+  { category: 'Technology', text: 'Big tech monopolies are more dangerous than traditional industry monopolies.' },
+  { category: 'Technology', text: 'Our relationship with our phones is clinically addictive and we\'ve just normalised it.' },
+  { category: 'Technology', text: 'Every convenience app has made us less capable of something.' },
+  { category: 'Technology', text: 'The right to be forgotten online is a fundamental human right.' },
+  { category: 'Technology', text: 'Open source software is more trustworthy than proprietary software.' },
+  { category: 'Technology', text: 'The attention economy is deliberately designed to harm you.' },
+  { category: 'Technology', text: 'We will not solve climate change without nuclear energy.' },
+  { category: 'Technology', text: 'Deepfakes will make video evidence inadmissible in court within a decade.' },
+
+  // MONEY & SUCCESS
+  { category: 'Money & Success', text: 'People who are proud of working 80-hour weeks are confusing suffering with virtue.' },
+  { category: 'Money & Success', text: 'Financial literacy should be mandatory in schools — and isn\'t because it\'s inconvenient for banks.' },
+  { category: 'Money & Success', text: 'Most successful people would not be where they are without significant luck.' },
+  { category: 'Money & Success', text: 'Wealth is mostly inherited, in one form or another.' },
+  { category: 'Money & Success', text: 'The richest people in a country say more about its problems than its politicians do.' },
+  { category: 'Money & Success', text: 'Most business success stories are survivorship bias with a book deal.' },
+  { category: 'Money & Success', text: 'People in debt are often judged more harshly than people who cause poverty.' },
+  { category: 'Money & Success', text: 'The "passion economy" is a con designed to extract unpaid labour from dreamers.' },
+  { category: 'Money & Success', text: 'No billionaire has earned their wealth in any purely individual sense.' },
+  { category: 'Money & Success', text: 'Financial independence is the most concrete form of freedom available today.' },
+  { category: 'Money & Success', text: 'Most people underestimate how much of their personality is tied to their class.' },
+  { category: 'Money & Success', text: 'A society that only values productivity will eventually destroy its own people.' },
+
+  // ETHICS & MORALITY
+  { category: 'Ethics', text: 'Eating meat is ethically indefensible and most people just choose not to think about it.' },
+  { category: 'Ethics', text: 'There are circumstances where lying is the most moral choice available.' },
+  { category: 'Ethics', text: 'Charity without systemic change is a way of making inequality comfortable.' },
+  { category: 'Ethics', text: 'The death penalty can be the right answer — context matters.' },
+  { category: 'Ethics', text: 'Intent matters less than impact in most moral situations.' },
+  { category: 'Ethics', text: 'Euthanasia is a compassionate right, not a threat to life\'s value.' },
+  { category: 'Ethics', text: 'Most people\'s moral framework stops exactly where their comfort begins.' },
+  { category: 'Ethics', text: 'The obligation to help strangers is just as real as the obligation to help family.' },
+  { category: 'Ethics', text: 'You can respect someone\'s right to a belief and still find the belief reprehensible.' },
+  { category: 'Ethics', text: 'Complicity is more common than outright wrongdoing — and more dangerous.' },
+  { category: 'Ethics', text: 'Whistleblowing is always morally justified, regardless of legal consequences.' },
+  { category: 'Ethics', text: 'Privacy is a right that trumps security in most real cases.' },
+];
+
+// ================================================================
+// === SPICY MODE — a dedicated pool of the most provocative statements ===
+// ================================================================
+const SPICY_STATEMENTS = [
+  { category: 'Relationships', text: 'Open relationships are more honest than monogamy.' },
+  { category: 'Relationships', text: 'Cheating once doesn\'t automatically make someone a bad partner.' },
+  { category: 'Relationships', text: 'Marrying for financial security is a legitimate reason to marry.' },
+  { category: 'Relationships', text: 'Most people stay in relationships out of fear of being alone, not love.' },
+  { category: 'Relationships', text: 'A big age gap in a relationship is nobody else\'s business.' },
+  { category: 'Relationships', text: 'Splitting the bill on a first date is a red flag.' },
+  { category: 'Relationships', text: 'You should be able to see your partner\'s phone whenever you want.' },
+  { category: 'Relationships', text: 'Staying close friends with an ex while in a new relationship is disrespectful to your partner.' },
+  { category: 'Relationships', text: 'Prenups are a sign of self-respect, not distrust.' },
+  { category: 'Relationships', text: 'Most people settle for their partner instead of finding "the one."' },
+  { category: 'Money', text: 'It\'s impossible to be truly ethical and extremely wealthy at the same time.' },
+  { category: 'Money', text: 'Tipping culture should be abolished entirely.' },
+  { category: 'Money', text: 'Inheriting wealth is unearned privilege that should be taxed heavily.' },
+  { category: 'Money', text: 'People who work themselves sick "for their family" are often avoiding their family.' },
+  { category: 'Money', text: 'Renting your whole life isn\'t a failure — owning a home is overrated.' },
+  { category: 'Money', text: 'Talking openly about your salary should be normal, not taboo.' },
+  { category: 'Money', text: 'Going into debt for a wedding is never worth it.' },
+  { category: 'Money', text: 'If you wouldn\'t do your job for free, you don\'t actually love it.' },
+  { category: 'Money', text: 'Retiring early and doing nothing is a waste of a life.' },
+  { category: 'Money', text: 'Buying a used gift shows more thought than buying a new one.' },
+  { category: 'Politics', text: 'Voting should be mandatory, with fines for those who skip it.' },
+  { category: 'Politics', text: 'The wealthy should not be allowed to donate to political campaigns at all.' },
+  { category: 'Politics', text: 'Borders are a moral necessity, not a moral failure.' },
+  { category: 'Politics', text: 'Open borders would do more good than harm globally.' },
+  { category: 'Politics', text: 'Protest that breaks the law is sometimes more effective than protest that doesn\'t.' },
+  { category: 'Politics', text: 'Gun ownership is a legitimate form of self-defense that shouldn\'t be restricted.' },
+  { category: 'Politics', text: 'Stricter gun control would save more lives than it would cost in freedom.' },
+  { category: 'Politics', text: 'Cancel culture has done more good than harm.' },
+  { category: 'Politics', text: 'Cancel culture has done more harm than good.' },
+  { category: 'Politics', text: 'Patriotism is just tribalism with better branding.' },
+  { category: 'Politics', text: 'Free speech should have almost no limits, even for offensive views.' },
+  { category: 'Politics', text: 'Some speech is dangerous enough that limiting it is justified.' },
+  { category: 'Family', text: 'Kids should be allowed to fail without parents stepping in to fix it.' },
+  { category: 'Family', text: 'Choosing not to have children is just as valid as choosing to have them.' },
+  { category: 'Family', text: 'Parents who track their teenagers\' location are overstepping.' },
+  { category: 'Family', text: 'Favoritism exists in almost every family, whether parents admit it or not.' },
+  { category: 'Family', text: 'It\'s selfish to have more than two children in a world with climate change.' },
+  { category: 'Family', text: 'Adult children shouldn\'t be financially supporting their parents by default.' },
+  { category: 'Family', text: 'Estrangement from a toxic family member is healthy, not shameful.' },
+  { category: 'Family', text: 'You owe your parents nothing just because they raised you.' },
+  { category: 'Body & Culture', text: 'Cosmetic surgery to "fix" a flaw is no different from getting braces.' },
+  { category: 'Body & Culture', text: 'Beauty standards have gotten worse, not better, in the last decade.' },
+  { category: 'Body & Culture', text: 'Tattoos should never be a reason not to hire someone.' },
+  { category: 'Body & Culture', text: 'Dressing provocatively in public isn\'t an invitation for judgment or comment.' },
+  { category: 'Body & Culture', text: 'Everyone secretly judges people based on how they look, no matter what they claim.' },
+  { category: 'Body & Culture', text: 'Being "not political" is itself a political stance.' },
+  { category: 'Body & Culture', text: 'Cultural appropriation is a real harm, not an overreaction.' },
+  { category: 'Body & Culture', text: 'Cultural appropriation is mostly an overreaction.' },
+  { category: 'Religion', text: 'You can be a deeply moral person without believing in God.' },
+  { category: 'Religion', text: 'Organized religion has done more harm than good throughout history.' },
+  { category: 'Religion', text: 'Faith and science can never be fully reconciled.' },
+  { category: 'Religion', text: 'Forgiving someone who never apologizes is a form of self-betrayal.' },
+  { category: 'Religion', text: 'Revenge, in small doses, can be healthy.' },
+  { category: 'Religion', text: 'Telling a "harmless" lie to keep the peace is still a betrayal of trust.' },
+  { category: 'Religion', text: 'Morality without consequences isn\'t morality at all.' },
+  { category: 'Religion', text: 'It\'s morally worse to hurt someone you love than a stranger.' },
+  { category: 'Religion', text: 'Guilt is a more useful emotion than happiness.' },
+  { category: 'Religion', text: 'Everyone has a price — it\'s just a matter of finding it.' },
+  { category: 'Justice', text: 'People who commit white-collar crime get treated far too leniently.' },
+  { category: 'Justice', text: 'Rehabilitation should always be prioritized over punishment in prisons.' },
+  { category: 'Justice', text: 'Some crimes are unforgivable no matter how much someone changes.' },
+  { category: 'Justice', text: 'Euthanasia should be legal for anyone who requests it, not just the terminally ill.' },
+  { category: 'Justice', text: 'People have the right to choose when and how they die.' },
+  { category: 'Justice', text: 'Drug use should be fully decriminalized, even for hard drugs.' },
+  { category: 'Justice', text: 'Legalizing all drugs would cause more harm than it would prevent.' },
+  { category: 'Justice', text: 'Whistleblowers should be protected even when they break the law to expose wrongdoing.' },
+  { category: 'Technology', text: 'Social media has made people lonelier, not more connected.' },
+  { category: 'Technology', text: 'Dating apps have ruined dating for everyone, not improved it.' },
+  { category: 'Technology', text: 'AI-generated art is still real art.' },
+  { category: 'Technology', text: 'Deleting social media entirely is the only real way to protect your mental health.' },
+  { category: 'Technology', text: 'Constant surveillance through technology is a fair trade for convenience.' },
+  { category: 'Technology', text: 'Ghosting someone is sometimes kinder than a hard conversation.' },
+  { category: 'Technology', text: 'Online anonymity brings out people\'s true selves, not fake ones.' },
+  { category: 'Technology', text: 'Screens have made this generation of kids worse off than the last.' },
+  { category: 'Mortality', text: 'Life has no inherent meaning — we invent all of it ourselves.' },
+  { category: 'Mortality', text: 'Grieving publicly on social media cheapens real grief.' },
+  { category: 'Mortality', text: 'Fear of death is really just fear of being forgotten.' },
+  { category: 'Mortality', text: 'Most people are more afraid of a boring life than an unhappy one.' },
+  { category: 'Mortality', text: 'Some people are better off not knowing the whole truth about a diagnosis.' },
+  { category: 'Mortality', text: 'Regret is more painful than failure.' },
+  { category: 'Mortality', text: 'Nobody truly gets over their first heartbreak — they just get used to it.' },
+  { category: 'Culture', text: 'Comedy should have no sacred cows — everything is fair game.' },
+  { category: 'Culture', text: 'Some jokes shouldn\'t be told, even if they\'re funny.' },
+  { category: 'Culture', text: 'Boycotting a celebrity\'s work doesn\'t actually accomplish anything.' },
+  { category: 'Culture', text: 'Nostalgia makes the past seem better than it actually was.' },
+  { category: 'Culture', text: 'People who say "I don\'t care what others think" care the most.' },
+  { category: 'Culture', text: 'Everyone has said something they\'d be mortified to have recorded.' },
+  { category: 'Culture', text: 'Being "too nice" is sometimes its own form of manipulation.' },
+  { category: 'Culture', text: 'Most secrets are kept to protect the secret-keeper, not the person they\'re about.' },
+  { category: 'Relationships', text: 'Wanting kids should be a dealbreaker discussed before the first date.' },
+  { category: 'Relationships', text: 'Long-distance relationships rarely work and everyone secretly knows it.' },
+  { category: 'Family', text: 'Homeschooling does more harm than good for most kids.' },
+  { category: 'Family', text: 'Grandparents shouldn\'t get a say in how their grandkids are raised.' },
+  { category: 'Justice', text: 'Vigilante justice is sometimes more effective than the legal system.' },
+  { category: 'Justice', text: 'Some people are just born bad, no matter their upbringing.' },
+  { category: 'Politics', text: 'National service should be mandatory for every young adult.' },
+  { category: 'Politics', text: 'The death penalty should be abolished everywhere, no exceptions.' },
+  { category: 'Body & Culture', text: 'Nobody actually "loves themselves" — self-love is mostly a coping mechanism.' },
+  { category: 'Body & Culture', text: 'Fame changes people for the worse, almost always.' },
+];
+
+// ================================================================
+// === BUILT-IN GAME MODES ===
+// ================================================================
+const BUILTIN_MODES = [
+  {
+    id: 'classic',
+    name: 'Classic',
+    emoji: '🔮',
+    iconClass: 'mode-icon-purple',
+    badge: 'badge-purple',
+    badgeText: 'Chill',
+    desc: 'A statement drops — everyone just talks. No pressure, no penalties. Pure conversation.',
+    rules: [
+      'A statement is generated for all players.',
+      'Take turns sharing whether you agree, disagree, or have a spicy take.',
+      'No voting or sipping — it\'s purely about honest conversation.',
+      'Anyone can challenge someone\'s response, but it stays friendly.',
+      'Pass the phone when the discussion feels done and generate the next one.',
+    ],
+    type: 'builtin',
+    resolution: 'classic',
+    turns: 'all',
+  },
+  {
+    id: 'sip-or-defend',
+    name: 'Sip or Defend',
+    emoji: '⚔️',
+    iconClass: 'mode-icon-rose',
+    badge: 'badge-rose',
+    badgeText: 'Drinking',
+    desc: 'Defend the statement or sip. The group decides if your defence holds up.',
+    rules: [
+      'A statement is generated for the current player.',
+      'They have 10 seconds to decide: Defend it or Sip.',
+      'If they choose Defend, they give a one-sentence argument for the statement.',
+      'The rest of the group votes — convincing or not?',
+      'A majority "fail" vote means they sip anyway. A pass means they\'re safe.',
+      'Rotate to the next player and repeat.',
+    ],
+    type: 'builtin',
+    resolution: 'vote',
+    turns: 'rotating',
+  },
+  {
+    id: 'agree-o-meter',
+    name: 'Agree-o-Meter',
+    emoji: '📊',
+    iconClass: 'mode-icon-gold',
+    badge: 'badge-gold',
+    badgeText: 'Social',
+    desc: 'Rate your agreement 1–10. The odd one out defends or sips.',
+    rules: [
+      'A statement is generated for everyone.',
+      'All players simultaneously hold up fingers 1–10 (or set their slider privately).',
+      'Reveal your numbers at the same time.',
+      'The player furthest from the group average is the odd one out.',
+      'They must either defend their position or sip.',
+      'In a tie for "most different," both outliers sip.',
+    ],
+    type: 'builtin',
+    resolution: 'simultaneous',
+    turns: 'all',
+  },
+  {
+    id: 'hot-seat',
+    name: 'Hot Seat Timer',
+    emoji: '⏱️',
+    iconClass: 'mode-icon-teal',
+    badge: 'badge-teal',
+    badgeText: 'High Stakes',
+    desc: 'You\'re on the clock. 30 seconds, no repeating, no silence. Fail and you sip.',
+    rules: [
+      'One player is in the hot seat per round.',
+      'A statement generates and a 30-second timer starts.',
+      'They must speak continuously about the statement without going silent or repeating a point.',
+      'The group watches — anyone can call them out for going silent or repeating.',
+      'If they fill the time, they\'re safe and pick someone else to sip.',
+      'If they falter, they sip and the next player takes the hot seat.',
+    ],
+    type: 'builtin',
+    resolution: 'timer',
+    turns: 'rotating',
+  },
+  {
+    id: 'cold-hot-take',
+    name: 'Cold Take / Hot Take',
+    emoji: '🌡️',
+    iconClass: 'mode-icon-blue',
+    badge: 'badge-blue',
+    badgeText: 'Meta',
+    desc: 'Is it a spicy hot take or a boring cold take? Classify it — then defend your read.',
+    rules: [
+      'A statement is generated for everyone.',
+      'Secretly decide: is this a Cold Take (obvious, widely agreed) or a Hot Take (controversial, spicy)?',
+      'All players reveal their classification simultaneously.',
+      'Players whose classification matches the majority are safe.',
+      'Outliers — those in the minority — must explain their read or sip.',
+      'If it\'s a perfect 50/50 split, everyone who can\'t explain their position in 15 seconds sips.',
+    ],
+    type: 'builtin',
+    resolution: 'simultaneous',
+    turns: 'all',
+  },
+  {
+    id: 'spicy',
+    name: 'Spicy',
+    emoji: '🌶️',
+    iconClass: 'mode-icon-spicy',
+    badge: 'badge-spicy',
+    badgeText: 'Juiciest',
+    desc: 'Only the most controversial statements in the bank. Discussion-only — no timers, just heat.',
+    rules: [
+      'Pulls exclusively from the Spicy statement pool — the most provocative statements in the app.',
+      'A statement is generated for everyone.',
+      'Take turns sharing your honest take — agree, disagree, or somewhere messy in between.',
+      'No voting or sipping — it\'s pure, unfiltered conversation.',
+      'Anyone can pass on a statement that\'s too much and generate the next one.',
+      'Best played with people who already know each other well.',
+    ],
+    type: 'builtin',
+    resolution: 'classic',
+    turns: 'all',
+    statementPool: 'spicy',
+  },
+];
+
+// ================================================================
+// === DOM SELECTORS ===
+// ================================================================
+const $ = id => document.getElementById(id);
+const $$ = sel => document.querySelectorAll(sel);
+
+const screens = {
+  home: $('screen-home'),
+  playerSetup: $('screen-player-setup'),
+  modeSelect: $('screen-mode-select'),
+  rules: $('screen-rules'),
+  gameplay: $('screen-gameplay'),
+  createMode: $('screen-create-mode'),
+  end: $('screen-end'),
+};
+
+// ================================================================
+// === NAVIGATION ===
+// ================================================================
+function showScreen(name) {
+  Object.values(screens).forEach(s => {
+    s.classList.remove('active');
+    s.setAttribute('aria-hidden', 'true');
+  });
+  const target = screens[name];
+  if (target) {
+    target.classList.add('active');
+    target.removeAttribute('aria-hidden');
+    target.scrollTop = 0;
+    window.scrollTo(0, 0);
+  }
+}
+
+// ================================================================
+// === LOCAL STORAGE ===
+// ================================================================
+function saveCustomModes() {
+  try {
+    localStorage.setItem('so_custom_modes', JSON.stringify(state.customModes));
+  } catch(e) { /* silently fail if storage unavailable */ }
+}
+
+function loadCustomModes() {
+  try {
+    const raw = localStorage.getItem('so_custom_modes');
+    if (raw) state.customModes = JSON.parse(raw);
+  } catch(e) { state.customModes = []; }
+}
+
+function savePremiumStatus() {
+  try {
+    localStorage.setItem('so_premium_unlocked', state.premiumUnlocked ? '1' : '0');
+  } catch(e) { /* silently fail if storage unavailable */ }
+}
+
+function loadPremiumStatus() {
+  try {
+    state.premiumUnlocked = localStorage.getItem('so_premium_unlocked') === '1';
+  } catch(e) { state.premiumUnlocked = false; }
+}
+
+// A mode is locked if it isn't on the free list and Premium hasn't been unlocked.
+// Custom modes (built via Create Your Own) are always a Premium feature.
+function isModeLocked(mode) {
+  if (state.premiumUnlocked) return false;
+  if (mode.type === 'custom') return true;
+  return !FREE_MODE_IDS.includes(mode.id);
+}
+
+let pendingLockedAction = null; // fn to run if the person unlocks premium from the modal
+
+function openPremiumModal(bodyText, onUnlock) {
+  if (bodyText) $('premium-modal-body').textContent = bodyText;
+  pendingLockedAction = onUnlock || null;
+  $('premium-modal').classList.add('active');
+}
+
+function closePremiumModal() {
+  $('premium-modal').classList.remove('active');
+  pendingLockedAction = null;
+}
+
+$('btn-premium-modal-close').addEventListener('click', closePremiumModal);
+
+$('btn-premium-modal-upgrade').addEventListener('click', () => {
+  // No payment processor is wired up yet — this is where a real checkout would launch.
+  closePremiumModal();
+});
+
+$('btn-premium-dev-toggle').addEventListener('click', () => {
+  state.premiumUnlocked = true;
+  savePremiumStatus();
+  renderModeSelect();
+  const action = pendingLockedAction;
+  closePremiumModal();
+  if (action) action();
+});
+
+// ================================================================
+// === HOME SCREEN ===
+// ================================================================
+$('btn-start-game').addEventListener('click', () => {
+  renderPlayerSetup();
+  showScreen('playerSetup');
+});
+
+$('btn-create-mode-home').addEventListener('click', () => {
+  if (!state.premiumUnlocked) {
+    openPremiumModal('Create Your Own Mode is part of Premium. Unlock it, plus every game mode and 200+ statements, for a one-time $5.99.', () => {
+      renderCreateMode();
+      showScreen('createMode');
+    });
+    return;
+  }
+  renderCreateMode();
+  showScreen('createMode');
+});
+
+// ================================================================
+// === PLAYER SETUP ===
+// ================================================================
+function renderPlayerSetup() {
+  // Reset selections
+  $$('.player-count-btn').forEach(btn => {
+    btn.classList.remove('selected');
+    btn.setAttribute('aria-pressed', 'false');
+  });
+  $('player-names-grid').innerHTML = '';
+  $('btn-confirm-players').disabled = true;
+}
+
+$('btn-back-from-setup').addEventListener('click', () => showScreen('home'));
+
+// Player count selector
+$('player-count-selector').addEventListener('click', e => {
+  const btn = e.target.closest('.player-count-btn');
+  if (!btn) return;
+
+  $$('.player-count-btn').forEach(b => {
+    b.classList.remove('selected');
+    b.setAttribute('aria-pressed', 'false');
+  });
+  btn.classList.add('selected');
+  btn.setAttribute('aria-pressed', 'true');
+
+  const count = parseInt(btn.dataset.count, 10);
+  renderPlayerNameFields(count);
+  $('btn-confirm-players').disabled = false;
+});
+
+function renderPlayerNameFields(count) {
+  const grid = $('player-names-grid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= count; i++) {
+    const div = document.createElement('div');
+    div.className = 'player-name-field';
+    div.innerHTML = `
+      <span class="player-name-label">Player ${i}</span>
+      <input
+        type="text"
+        class="form-input"
+        placeholder="Player ${i}"
+        maxlength="16"
+        aria-label="Name for player ${i}"
+        data-player-index="${i}"
+      >
+    `;
+    grid.appendChild(div);
+  }
+}
+
+$('btn-confirm-players').addEventListener('click', () => {
+  const countBtn = document.querySelector('.player-count-btn.selected');
+  if (!countBtn) return;
+  const count = parseInt(countBtn.dataset.count, 10);
+  const inputs = $$('#player-names-grid input');
+  state.players = Array.from({ length: count }, (_, i) => ({
+    name: (inputs[i]?.value.trim()) || `Player ${i + 1}`,
+    sips: 0,
+    safes: 0,
+  }));
+  renderModeSelect();
+  showScreen('modeSelect');
+});
+
+// ================================================================
+// === MODE SELECT ===
+// ================================================================
+function getAllModes() {
+  return [...BUILTIN_MODES, ...state.customModes];
+}
+
+function renderModeSelect() {
+  const grid = $('mode-grid');
+  grid.innerHTML = '';
+
+  // Built-in modes
+  BUILTIN_MODES.forEach(mode => {
+    const card = createModeCard(mode);
+    grid.appendChild(card);
+  });
+
+  // Custom modes
+  state.customModes.forEach(mode => {
+    const card = createModeCard(mode);
+    grid.appendChild(card);
+  });
+
+  // Create mode card
+  const createLocked = !state.premiumUnlocked;
+  const createCard = document.createElement('button');
+  createCard.className = 'mode-card mode-create' + (createLocked ? ' mode-locked' : '');
+  createCard.setAttribute('aria-label', createLocked ? 'Create Your Own — Premium feature' : 'Create your own game mode');
+  createCard.innerHTML = `
+    <div class="mode-icon mode-icon-surface">✦</div>
+    <div class="mode-text">
+      <div class="mode-name-row">
+        <div class="mode-name">Create Your Own</div>
+        ${createLocked ? '<span class="mode-lock-badge">🔒 Premium</span>' : ''}
+      </div>
+      <p class="mode-desc">Build a custom mode using the statement bank and your own rules.</p>
+    </div>
+    <span class="mode-arrow" aria-hidden="true">→</span>
+  `;
+  createCard.addEventListener('click', () => {
+    if (createLocked) {
+      openPremiumModal('Create Your Own Mode is part of Premium. Unlock it, plus every game mode and 200+ statements, for a one-time $5.99.', () => {
+        renderCreateMode();
+        showScreen('createMode');
+      });
+      return;
+    }
+    renderCreateMode();
+    showScreen('createMode');
+  });
+  grid.appendChild(createCard);
+}
+
+function createModeCard(mode) {
+  const locked = isModeLocked(mode);
+  const card = document.createElement('button');
+  card.className = 'mode-card' + (locked ? ' mode-locked' : '');
+  card.setAttribute('aria-label', locked ? `${mode.name} — Premium mode, locked` : `Play ${mode.name}`);
+  card.dataset.modeId = mode.id;
+  card.innerHTML = `
+    <div class="mode-icon ${mode.iconClass || 'mode-icon-surface'}">${mode.emoji || '🎮'}</div>
+    <div class="mode-text">
+      <div class="mode-name-row">
+        <div class="mode-name">${escapeHTML(mode.name)}</div>
+        ${locked ? '<span class="mode-lock-badge">🔒 Premium</span>' : ''}
+      </div>
+      <p class="mode-desc">${escapeHTML(mode.desc || '')}</p>
+    </div>
+    <span class="mode-arrow" aria-hidden="true">→</span>
+  `;
+  card.addEventListener('click', () => {
+    if (locked) {
+      openPremiumModal(`${mode.name} is part of Premium. Unlock every game mode, Create Your Own Mode, and 200+ statements for a one-time $5.99.`, () => {
+        state.currentMode = mode;
+        renderRulesScreen(mode);
+        showScreen('rules');
+      });
+      return;
+    }
+    state.currentMode = mode;
+    renderRulesScreen(mode);
+    showScreen('rules');
+  });
+  return card;
+}
+
+$('btn-back-from-modes').addEventListener('click', () => showScreen('playerSetup'));
+
+// ================================================================
+// === RULES SCREEN ===
+// ================================================================
+function renderRulesScreen(mode) {
+  $('rules-mode-name').textContent = mode.name;
+
+  const icon = $('rules-mode-icon');
+  icon.textContent = mode.emoji || '🎮';
+  icon.style.background = 'var(--color-primary-dim)';
+
+  const badgeContainer = $('rules-badge-container');
+  badgeContainer.innerHTML = mode.badgeText
+    ? `<span class="badge ${mode.badge || 'badge-purple'}">${escapeHTML(mode.badgeText)}</span>`
+    : `<span class="badge badge-purple">Custom</span>`;
+
+  $('rules-mode-desc').textContent = mode.desc || '';
+
+  const rulesList = $('rules-list');
+  rulesList.innerHTML = '';
+  const rulesArr = mode.rules || generateCustomRules(mode);
+  rulesArr.forEach((rule, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="rule-num" aria-hidden="true">${i + 1}</span><span>${escapeHTML(rule)}</span>`;
+    rulesList.appendChild(li);
+  });
+}
+
+function generateCustomRules(mode) {
+  // Auto-generate rules from custom mode config
+  const rules = [];
+  if (mode.premise) rules.push(mode.premise);
+
+  const resLabels = {
+    vote: 'The group votes to decide if the active player sips or is safe.',
+    timer: `The active player has ${mode.timerSeconds || 30} seconds to respond. Fail the time and sip.`,
+    self: 'Each player decides for themselves whether they sip or are safe each round.',
+    simultaneous: 'All players answer simultaneously, then reveal and compare responses.',
+  };
+  if (mode.resolution && resLabels[mode.resolution]) {
+    rules.push(resLabels[mode.resolution]);
+  }
+
+  const turnLabels = {
+    rotating: 'Turns rotate through all players in order.',
+    all: 'Every player participates in every round.',
+    random: 'Each round, a random player is chosen.',
+  };
+  if (mode.turns && turnLabels[mode.turns]) {
+    rules.push(turnLabels[mode.turns]);
+  }
+
+  if (mode.winCondition) {
+    const winLabels = {
+      'fewest-sips': 'The player with fewest sips at the end wins.',
+      'most-points': 'The player with most safe rounds at the end wins.',
+      'survivor': 'Players are eliminated after too many sips. Last one standing wins.',
+      'no-winner': 'No winner — this mode is just for fun.',
+    };
+    if (winLabels[mode.winCondition]) rules.push(winLabels[mode.winCondition]);
+  }
+
+  return rules.length ? rules : ['Play by the mode rules you created. Sip when the group decides you should.'];
+}
+
+$('btn-back-from-rules').addEventListener('click', () => showScreen('modeSelect'));
+
+$('btn-start-mode').addEventListener('click', () => {
+  startGame();
+});
+
+// ================================================================
+// === GAME ENGINE ===
+// ================================================================
+function startGame() {
+  // Reset state
+  state.currentPlayerIndex = 0;
+  state.round = 1;
+  state.usedStatements.clear();
+  state.usedSpicyStatements.clear();
+  state.roundChoices = {};
+  state.roundVotes = { pass: 0, fail: 0 };
+  state.gamePhase = 'idle';
+  stopTimer();
+
+  state.players.forEach(p => { p.sips = 0; p.safes = 0; });
+
+  renderScoreboard();
+  renderGameHeader();
+  renderTurnIndicator();
+  clearStatementCard();
+  renderActionZone();
+
+  showScreen('gameplay');
+}
+
+$('btn-back-from-rules').addEventListener('click', () => showScreen('modeSelect'));
+$('btn-end-game').addEventListener('click', endGame);
+
+function renderGameHeader() {
+  $('game-mode-label').textContent = state.currentMode?.name || '';
+  updateRoundBadge();
+}
+
+function updateRoundBadge() {
+  $('game-round-badge').textContent = `Round ${state.round}`;
+}
+
+function renderScoreboard() {
+  const container = $('scoreboard-players');
+  container.innerHTML = '';
+  state.players.forEach((player, idx) => {
+    const div = document.createElement('div');
+    div.className = `scoreboard-player${idx === state.currentPlayerIndex ? ' active-turn' : ''}`;
+    div.id = `score-player-${idx}`;
+    div.setAttribute('aria-label', `${player.name}: ${player.sips} sips, ${player.safes} safe rounds`);
+    div.innerHTML = `
+      <span class="scoreboard-player-name">${escapeHTML(player.name)}</span>
+      <span class="scoreboard-sip-count">${player.sips} 🍺</span>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function updateScoreboard() {
+  state.players.forEach((player, idx) => {
+    const el = $(`score-player-${idx}`);
+    if (!el) return;
+    el.className = `scoreboard-player${idx === state.currentPlayerIndex ? ' active-turn' : ''}`;
+    el.setAttribute('aria-label', `${player.name}: ${player.sips} sips`);
+    el.querySelector('.scoreboard-sip-count').textContent = `${player.sips} 🍺`;
+  });
+}
+
+function renderTurnIndicator() {
+  const mode = state.currentMode;
+  const isRotating = (mode?.turns === 'rotating') || (mode?.resolution === 'vote' && mode?.turns !== 'all');
+  const isAll = mode?.turns === 'all' || mode?.resolution === 'simultaneous' || mode?.id === 'classic' || mode?.id === 'agree-o-meter' || mode?.id === 'cold-hot-take';
+
+  const indicator = $('turn-indicator');
+
+  if (isAll) {
+    // Show "everyone plays"
+    indicator.querySelector('.turn-label').textContent = 'Everyone plays';
+    $('turn-player-name').textContent = 'All Players';
+    $('turn-avatar').textContent = '👥';
+  } else {
+    const player = state.players[state.currentPlayerIndex];
+    indicator.querySelector('.turn-label').textContent = 'Active Player';
+    $('turn-player-name').textContent = player.name;
+    $('turn-avatar').textContent = player.name.charAt(0).toUpperCase();
+  }
+}
+
+function clearStatementCard() {
+  $('statement-category').textContent = '';
+  $('statement-text').textContent = 'Press generate to reveal a statement';
+  $('statement-text').className = 'statement-placeholder';
+  state.currentStatement = null;
+}
+
+// ================================================================
+// === STATEMENT ENGINE ===
+// ================================================================
+function getRandomStatement() {
+  const isSpicy = state.currentMode && state.currentMode.statementPool === 'spicy';
+  const pool = isSpicy ? SPICY_STATEMENTS : STATEMENTS;
+  const usedSet = isSpicy ? state.usedSpicyStatements : state.usedStatements;
+
+  const allIndexes = pool
+    .map((s, i) => i)
+    .filter(i => !usedSet.has(i));
+
+  if (allIndexes.length === 0) {
+    usedSet.clear();
+    return getRandomStatement();
+  }
+  const idx = allIndexes[Math.floor(Math.random() * allIndexes.length)];
+  usedSet.add(idx);
+  return pool[idx];
+}
+
+function displayStatement(stmt) {
+  state.currentStatement = stmt;
+  $('statement-category').textContent = stmt.category;
+  const textEl = $('statement-text');
+  textEl.textContent = `"${stmt.text}"`;
+  textEl.className = 'statement-text';
+  textEl.classList.add('animate-fade-in');
+  // Remove animation class after it's done
+  setTimeout(() => textEl.classList.remove('animate-fade-in'), 400);
+}
+
+// ================================================================
+// === ACTION ZONE RENDERER ===
+// ================================================================
+function renderActionZone() {
+  const zone = $('game-action-zone');
+  zone.innerHTML = '';
+  const mode = state.currentMode;
+  if (!mode) return;
+
+  switch (mode.id) {
+    case 'classic':      renderClassicActions(zone); break;
+    case 'sip-or-defend': renderSipOrDefendActions(zone); break;
+    case 'agree-o-meter': renderAgreeOMeterActions(zone); break;
+    case 'hot-seat':     renderHotSeatActions(zone); break;
+    case 'cold-hot-take': renderColdHotTakeActions(zone); break;
+    case 'spicy':        renderSpicyActions(zone); break;
+    default:
+      // Custom mode
+      renderCustomActions(zone, mode);
+  }
+}
+
+// --- CLASSIC ---
+function renderClassicActions(zone) {
+  zone.innerHTML = `
+    <button class="btn btn-primary btn-full btn-lg" id="action-generate">
+      🔮 Generate Statement
+    </button>
+    <button class="btn btn-secondary btn-full hidden" id="action-next-classic">
+      Next Round →
+    </button>
+  `;
+  zone.querySelector('#action-generate').addEventListener('click', () => {
+    const stmt = getRandomStatement();
+    displayStatement(stmt);
+    zone.querySelector('#action-generate').classList.add('hidden');
+    zone.querySelector('#action-next-classic').classList.remove('hidden');
+  });
+  zone.querySelector('#action-next-classic').addEventListener('click', () => {
+    advanceRound();
+    renderActionZone();
+    clearStatementCard();
+    renderTurnIndicator();
+    updateScoreboard();
+  });
+}
+
+// --- SPICY ---
+function renderSpicyActions(zone) {
+  zone.innerHTML = `
+    <button class="btn btn-primary btn-full btn-lg" id="action-generate">
+      🌶️ Generate Spicy Statement
+    </button>
+    <button class="btn btn-secondary btn-full hidden" id="action-next-classic">
+      Next Round →
+    </button>
+  `;
+  zone.querySelector('#action-generate').addEventListener('click', () => {
+    const stmt = getRandomStatement();
+    displayStatement(stmt);
+    zone.querySelector('#action-generate').classList.add('hidden');
+    zone.querySelector('#action-next-classic').classList.remove('hidden');
+  });
+  zone.querySelector('#action-next-classic').addEventListener('click', () => {
+    advanceRound();
+    renderActionZone();
+    clearStatementCard();
+    renderTurnIndicator();
+    updateScoreboard();
+  });
+}
+// Phase: idle → generated → player-chose → voted → result
+function renderSipOrDefendActions(zone) {
+  const player = state.players[state.currentPlayerIndex];
+
+  if (state.gamePhase === 'idle') {
+    zone.innerHTML = `
+      <button class="btn btn-primary btn-full btn-lg" id="action-generate">
+        ⚔️ Generate Statement
+      </button>
+    `;
+    zone.querySelector('#action-generate').addEventListener('click', () => {
+      const stmt = getRandomStatement();
+      displayStatement(stmt);
+      state.gamePhase = 'action';
+      renderActionZone();
+    });
+
+  } else if (state.gamePhase === 'action') {
+    // Player must choose defend or sip
+    zone.innerHTML = `
+      <p style="text-align:center;font-size:13px;color:var(--color-text-muted);margin-bottom:4px;">
+        <strong style="color:var(--color-text-primary);">${escapeHTML(player.name)}</strong> — defend it or sip?
+      </p>
+      <div class="action-pair">
+        <button class="btn btn-defend btn-full" id="action-defend">🛡️ Defend</button>
+        <button class="btn btn-sip btn-full" id="action-sip-direct">🍺 Sip</button>
+      </div>
+    `;
+    zone.querySelector('#action-defend').addEventListener('click', () => {
+      state.roundVotes = { pass: 0, fail: 0 };
+      state.gamePhase = 'vote';
+      renderActionZone();
+    });
+    zone.querySelector('#action-sip-direct').addEventListener('click', () => {
+      player.sips++;
+      updateScoreboard();
+      state.gamePhase = 'result';
+      renderSipOrDefendResult(zone, player.name, 'sipped', true);
+    });
+
+  } else if (state.gamePhase === 'vote') {
+    // Group votes on the defence
+    const otherCount = state.players.length - 1;
+    const totalVotes = state.roundVotes.pass + state.roundVotes.fail;
+    const remaining = otherCount - totalVotes;
+
+    zone.innerHTML = `
+      <div class="vote-section">
+        <p class="vote-section-title">Was the defence convincing?</p>
+        <p style="font-size:12px;color:var(--color-text-muted);text-align:center;">
+          ${totalVotes} of ${otherCount} voted · ${remaining} remaining
+        </p>
+        <div class="vote-buttons">
+          <button class="btn btn-vote-pass btn-full" id="vote-pass">👍 Convincing</button>
+          <button class="btn btn-vote-fail btn-full" id="vote-fail">👎 Weak</button>
+        </div>
+      </div>
+    `;
+    zone.querySelector('#vote-pass').addEventListener('click', () => {
+      state.roundVotes.pass++;
+      checkVoteComplete(zone, player, otherCount);
+    });
+    zone.querySelector('#vote-fail').addEventListener('click', () => {
+      state.roundVotes.fail++;
+      checkVoteComplete(zone, player, otherCount);
+    });
+
+  } else if (state.gamePhase === 'result') {
+    // Already rendered via renderSipOrDefendResult
+  }
+}
+
+function checkVoteComplete(zone, player, otherCount) {
+  const total = state.roundVotes.pass + state.roundVotes.fail;
+  if (total >= otherCount) {
+    const didPass = state.roundVotes.pass >= state.roundVotes.fail;
+    if (didPass) {
+      player.safes++;
+    } else {
+      player.sips++;
+    }
+    updateScoreboard();
+    state.gamePhase = 'result';
+    renderSipOrDefendResult(zone, player.name, didPass ? 'defended' : 'failed', !didPass);
+  } else {
+    // Re-render with updated counts
+    renderActionZone();
+  }
+}
+
+function renderSipOrDefendResult(zone, playerName, outcome, didSip) {
+  zone.innerHTML = `
+    <div class="round-result animate-fade-in">
+      <span class="round-result-emoji">${didSip ? '🍺' : '🛡️'}</span>
+      <div class="round-result-title">${didSip ? `${escapeHTML(playerName)} sips!` : `${escapeHTML(playerName)} is safe!`}</div>
+      <p class="round-result-desc">${outcome === 'sipped' ? 'Chose not to defend.' : outcome === 'defended' ? 'The group found the defence convincing.' : 'The group wasn\'t convinced.'}</p>
+    </div>
+    <button class="btn btn-primary btn-full" id="action-next-sod">Next Player →</button>
+  `;
+  zone.querySelector('#action-next-sod').addEventListener('click', () => {
+    advanceRound();
+    state.gamePhase = 'idle';
+    clearStatementCard();
+    renderTurnIndicator();
+    updateScoreboard();
+    renderActionZone();
+  });
+}
+
+// --- AGREE-O-METER ---
+function renderAgreeOMeterActions(zone) {
+  if (state.gamePhase === 'idle') {
+    zone.innerHTML = `
+      <button class="btn btn-primary btn-full btn-lg" id="action-generate">
+        📊 Generate Statement
+      </button>
+    `;
+    zone.querySelector('#action-generate').addEventListener('click', () => {
+      const stmt = getRandomStatement();
+      displayStatement(stmt);
+      state.gamePhase = 'action';
+      state.roundChoices = {};
+      renderActionZone();
+    });
+
+  } else if (state.gamePhase === 'action') {
+    // Collect each player's agreement score
+    const allVoted = state.players.every(p => state.roundChoices[p.name] !== undefined);
+    const currentVoting = state.players.find(p => state.roundChoices[p.name] === undefined);
+
+    if (!currentVoting) {
+      state.gamePhase = 'reveal';
+      renderActionZone();
+      return;
+    }
+
+    zone.innerHTML = `
+      <div class="vote-section">
+        <p class="vote-section-title" style="margin-bottom:var(--spacing-xs);">
+          <strong style="color:var(--color-text-primary);">${escapeHTML(currentVoting.name)}</strong> — how much do you agree?
+        </p>
+        <div class="agree-slider-wrapper">
+          <div class="agree-value-display" id="agree-value" aria-live="polite">5</div>
+          <input
+            type="range"
+            class="agree-slider"
+            min="1" max="10" value="5"
+            id="agree-slider"
+            aria-label="Agreement level 1 to 10"
+          >
+          <div class="agree-slider-labels">
+            <span>1 — Strongly disagree</span>
+            <span>10 — Strongly agree</span>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" id="agree-lock" aria-label="Lock in your score">
+          Lock In Score
+        </button>
+      </div>
+    `;
+
+    const slider = zone.querySelector('#agree-slider');
+    const display = zone.querySelector('#agree-value');
+    slider.addEventListener('input', () => { display.textContent = slider.value; });
+
+    zone.querySelector('#agree-lock').addEventListener('click', () => {
+      state.roundChoices[currentVoting.name] = parseInt(slider.value, 10);
+      renderActionZone();
+    });
+
+  } else if (state.gamePhase === 'reveal') {
+    // Calculate outlier
+    const scores = state.players.map(p => ({ name: p.name, score: state.roundChoices[p.name] || 5 }));
+    const avg = scores.reduce((s, p) => s + p.score, 0) / scores.length;
+    const diffs = scores.map(p => ({ ...p, diff: Math.abs(p.score - avg) }));
+    const maxDiff = Math.max(...diffs.map(d => d.diff));
+    const outliers = diffs.filter(d => d.diff === maxDiff);
+
+    // Award sips to outliers
+    outliers.forEach(o => {
+      const player = state.players.find(p => p.name === o.name);
+      if (player) player.sips++;
+    });
+    state.players.forEach(p => {
+      if (!outliers.find(o => o.name === p.name)) p.safes++;
+    });
+    updateScoreboard();
+
+    const revealRows = scores.map(s =>
+      `<div class="reveal-row">
+        <span class="reveal-player-name">${escapeHTML(s.name)}</span>
+        <span class="reveal-choice ${outliers.find(o => o.name === s.name) ? 'disagree' : 'agree'}">${s.score}/10</span>
+      </div>`
+    ).join('');
+
+    zone.innerHTML = `
+      <div class="reveal-panel animate-fade-in">
+        <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:4px;">Group average: <strong style="color:var(--color-primary);">${avg.toFixed(1)}</strong></p>
+        ${revealRows}
+      </div>
+      <div class="round-result animate-fade-in" style="margin-top:0;">
+        <span class="round-result-emoji">🍺</span>
+        <div class="round-result-title">${outliers.map(o => escapeHTML(o.name)).join(' & ')} ${outliers.length > 1 ? 'sip!' : 'sips!'}</div>
+        <p class="round-result-desc">Furthest from the group average.</p>
+      </div>
+      <button class="btn btn-primary btn-full" id="action-next-agree">Next Round →</button>
+    `;
+    zone.querySelector('#action-next-agree').addEventListener('click', () => {
+      state.gamePhase = 'idle';
+      state.roundChoices = {};
+      clearStatementCard();
+      advanceRound();
+      renderTurnIndicator();
+      updateScoreboard();
+      renderActionZone();
+    });
+  }
+}
+
+// --- HOT SEAT TIMER ---
+function renderHotSeatActions(zone) {
+  const player = state.players[state.currentPlayerIndex];
+
+  if (state.gamePhase === 'idle') {
+    zone.innerHTML = `
+      <button class="btn btn-primary btn-full btn-lg" id="action-generate">
+        ⏱️ Generate Statement
+      </button>
+    `;
+    zone.querySelector('#action-generate').addEventListener('click', () => {
+      const stmt = getRandomStatement();
+      displayStatement(stmt);
+      state.gamePhase = 'action';
+      renderActionZone();
+    });
+
+  } else if (state.gamePhase === 'action') {
+    const duration = 30;
+    state.timerSeconds = duration;
+
+    zone.innerHTML = `
+      <p style="text-align:center;font-size:13px;color:var(--color-text-muted);">
+        <strong style="color:var(--color-text-primary);">${escapeHTML(player.name)}</strong> is in the hot seat — keep talking!
+      </p>
+      <div class="timer-ring-wrapper">
+        <div class="timer-ring" aria-label="Timer" role="timer">
+          <svg width="90" height="90" viewBox="0 0 90 90">
+            <circle class="timer-ring-bg" cx="45" cy="45" r="38"/>
+            <circle class="timer-ring-progress" id="timer-progress" cx="45" cy="45" r="38"
+              stroke-dasharray="${2 * Math.PI * 38}"
+              stroke-dashoffset="0"
+            />
+          </svg>
+          <div class="timer-number" id="timer-display" aria-live="polite">${duration}</div>
+        </div>
+        <span class="timer-label">seconds remaining</span>
+      </div>
+      <div class="action-pair" id="timer-result-actions" style="display:none;">
+        <button class="btn btn-defend" id="action-timer-pass">✓ Made it!</button>
+        <button class="btn btn-sip" id="action-timer-fail">✗ Faltered</button>
+      </div>
+      <button class="btn btn-secondary btn-full" id="action-start-timer">▶ Start Timer</button>
+    `;
+
+    const circumference = 2 * Math.PI * 38;
+    const progressEl = zone.querySelector('#timer-progress');
+    const displayEl = zone.querySelector('#timer-display');
+
+    zone.querySelector('#action-start-timer').addEventListener('click', () => {
+      zone.querySelector('#action-start-timer').classList.add('hidden');
+      let seconds = duration;
+
+      state.timerInterval = setInterval(() => {
+        seconds--;
+        state.timerSeconds = seconds;
+        if (displayEl) displayEl.textContent = seconds;
+        if (progressEl) {
+          const offset = circumference * (1 - seconds / duration);
+          progressEl.style.strokeDashoffset = offset;
+          if (seconds <= 10) progressEl.style.stroke = 'var(--color-accent-rose)';
+          else progressEl.style.stroke = 'var(--color-primary)';
+        }
+
+        if (seconds <= 0) {
+          stopTimer();
+          if (displayEl) displayEl.textContent = '0';
+          // Show result buttons
+          const resultActions = zone.querySelector('#timer-result-actions');
+          if (resultActions) resultActions.style.display = 'grid';
+        }
+      }, 1000);
+    });
+
+    // Attach result buttons — event delegation on zone
+    zone.addEventListener('click', function hotSeatDelegate(e) {
+      const passBtn = e.target.closest('#action-timer-pass');
+      const failBtn = e.target.closest('#action-timer-fail');
+      if (!passBtn && !failBtn) return;
+
+      stopTimer();
+      zone.removeEventListener('click', hotSeatDelegate);
+
+      if (passBtn) {
+        player.safes++;
+        state.gamePhase = 'result';
+        renderHotSeatResult(zone, player.name, true);
+      } else {
+        player.sips++;
+        state.gamePhase = 'result';
+        renderHotSeatResult(zone, player.name, false);
+      }
+      updateScoreboard();
+    });
+  }
+}
+
+function renderHotSeatResult(zone, playerName, passed) {
+  zone.innerHTML = `
+    <div class="round-result animate-fade-in">
+      <span class="round-result-emoji">${passed ? '🏆' : '🍺'}</span>
+      <div class="round-result-title">${passed ? `${escapeHTML(playerName)} survived!` : `${escapeHTML(playerName)} sips!`}</div>
+      <p class="round-result-desc">${passed ? 'Full 30 seconds — impressive.' : 'Didn\'t make it through the timer.'}</p>
+    </div>
+    <button class="btn btn-primary btn-full" id="action-next-hs">Next Player →</button>
+  `;
+  zone.querySelector('#action-next-hs').addEventListener('click', () => {
+    advanceRound();
+    state.gamePhase = 'idle';
+    clearStatementCard();
+    renderTurnIndicator();
+    updateScoreboard();
+    renderActionZone();
+  });
+}
+
+// --- COLD TAKE / HOT TAKE ---
+function renderColdHotTakeActions(zone) {
+  if (state.gamePhase === 'idle') {
+    zone.innerHTML = `
+      <button class="btn btn-primary btn-full btn-lg" id="action-generate">
+        🌡️ Generate Statement
+      </button>
+    `;
+    zone.querySelector('#action-generate').addEventListener('click', () => {
+      const stmt = getRandomStatement();
+      displayStatement(stmt);
+      state.gamePhase = 'action';
+      state.roundChoices = {};
+      renderActionZone();
+    });
+
+  } else if (state.gamePhase === 'action') {
+    const currentVoting = state.players.find(p => state.roundChoices[p.name] === undefined);
+
+    if (!currentVoting) {
+      state.gamePhase = 'reveal';
+      renderActionZone();
+      return;
+    }
+
+    zone.innerHTML = `
+      <p style="text-align:center;font-size:13px;color:var(--color-text-muted);margin-bottom:4px;">
+        <strong style="color:var(--color-text-primary);">${escapeHTML(currentVoting.name)}</strong> — how do you classify this?
+      </p>
+      <div class="take-buttons">
+        <button class="btn btn-cold btn-full" data-take="cold">
+          <span class="take-btn-emoji">🧊</span>Cold Take
+          <span style="font-size:11px;opacity:0.7;">Obvious, basic opinion</span>
+        </button>
+        <button class="btn btn-hot btn-full" data-take="hot">
+          <span class="take-btn-emoji">🔥</span>Hot Take
+          <span style="font-size:11px;opacity:0.7;">Spicy, controversial</span>
+        </button>
+      </div>
+    `;
+
+    zone.addEventListener('click', function takeDelegate(e) {
+      const btn = e.target.closest('[data-take]');
+      if (!btn) return;
+      zone.removeEventListener('click', takeDelegate);
+      state.roundChoices[currentVoting.name] = btn.dataset.take;
+      renderActionZone();
+    });
+
+  } else if (state.gamePhase === 'reveal') {
+    // Determine majority
+    const choices = state.players.map(p => state.roundChoices[p.name] || 'cold');
+    const coldCount = choices.filter(c => c === 'cold').length;
+    const hotCount = choices.filter(c => c === 'hot').length;
+    const majority = coldCount > hotCount ? 'cold' : hotCount > coldCount ? 'hot' : 'tie';
+
+    // Award sips
+    let outlierNames = [];
+    if (majority === 'tie') {
+      // Everyone sips who can't explain — we just make everyone safe for the tie case (explained in rules as edge case)
+      state.players.forEach(p => p.safes++);
+    } else {
+      state.players.forEach(p => {
+        const choice = state.roundChoices[p.name] || 'cold';
+        if (choice !== majority) {
+          p.sips++;
+          outlierNames.push(p.name);
+        } else {
+          p.safes++;
+        }
+      });
+    }
+    updateScoreboard();
+
+    const revealRows = state.players.map(p => {
+      const choice = state.roundChoices[p.name] || 'cold';
+      return `<div class="reveal-row">
+        <span class="reveal-player-name">${escapeHTML(p.name)}</span>
+        <span class="reveal-choice ${choice}">${choice === 'cold' ? '🧊 Cold' : '🔥 Hot'}</span>
+      </div>`;
+    }).join('');
+
+    const resultEmoji = majority === 'tie' ? '⚖️' : outlierNames.length > 0 ? '🍺' : '✓';
+    const resultTitle = majority === 'tie'
+      ? 'It\'s a tie! Everyone is safe.'
+      : outlierNames.length > 0
+        ? `${outlierNames.map(n => escapeHTML(n)).join(' & ')} ${outlierNames.length > 1 ? 'sip!' : 'sips!'}`
+        : 'Everyone agreed!';
+
+    zone.innerHTML = `
+      <div class="reveal-panel animate-fade-in">
+        <p style="font-size:12px;color:var(--color-text-muted);margin-bottom:4px;">
+          Majority said: <strong style="color:var(--color-primary);">${majority === 'tie' ? 'Tied' : majority === 'cold' ? '🧊 Cold Take' : '🔥 Hot Take'}</strong>
+        </p>
+        ${revealRows}
+      </div>
+      <div class="round-result animate-fade-in" style="margin-top:0;">
+        <span class="round-result-emoji">${resultEmoji}</span>
+        <div class="round-result-title">${resultTitle}</div>
+        <p class="round-result-desc">${majority === 'tie' ? 'Perfect split — everyone explain your read!' : 'Outliers must defend their classification or sip.'}</p>
+      </div>
+      <button class="btn btn-primary btn-full" id="action-next-cht">Next Round →</button>
+    `;
+    zone.querySelector('#action-next-cht').addEventListener('click', () => {
+      state.gamePhase = 'idle';
+      state.roundChoices = {};
+      clearStatementCard();
+      advanceRound();
+      renderTurnIndicator();
+      updateScoreboard();
+      renderActionZone();
+    });
+  }
+}
+
+// --- CUSTOM MODE ---
+function renderCustomActions(zone, mode) {
+  const player = state.players[state.currentPlayerIndex];
+  const isRotating = mode.turns === 'rotating';
+  const isAll = mode.turns === 'all' || mode.resolution === 'simultaneous';
+
+  if (state.gamePhase === 'idle') {
+    zone.innerHTML = `
+      <button class="btn btn-primary btn-full btn-lg" id="action-generate">
+        ${escapeHTML(mode.emoji || '🎮')} Generate Statement
+      </button>
+    `;
+    zone.querySelector('#action-generate').addEventListener('click', () => {
+      const stmt = getRandomStatement();
+      displayStatement(stmt);
+      state.gamePhase = 'action';
+      state.roundChoices = {};
+      state.roundVotes = { pass: 0, fail: 0 };
+      renderActionZone();
+    });
+
+  } else if (state.gamePhase === 'action') {
+    // Render based on resolution type
+    switch (mode.resolution) {
+      case 'vote':     renderCustomVoteActions(zone, mode, player); break;
+      case 'timer':    renderCustomTimerActions(zone, mode, player); break;
+      case 'self':     renderCustomSelfDeclareActions(zone, mode, isAll ? null : player); break;
+      case 'simultaneous': renderCustomSimultaneousActions(zone, mode); break;
+      default:         renderCustomGenericActions(zone, mode, player);
+    }
+  }
+}
+
+function renderCustomVoteActions(zone, mode, player) {
+  const otherCount = state.players.length - 1;
+  const totalVotes = state.roundVotes.pass + state.roundVotes.fail;
+  const remaining = otherCount - totalVotes;
+
+  if (totalVotes < otherCount) {
+    zone.innerHTML = `
+      <div class="vote-section">
+        <p class="vote-section-title">Vote on <strong style="color:var(--color-text-primary);">${escapeHTML(player.name)}</strong></p>
+        <p style="font-size:12px;color:var(--color-text-muted);text-align:center;">${totalVotes} of ${otherCount} voted · ${remaining} left</p>
+        <div class="vote-buttons">
+          <button class="btn btn-vote-pass btn-full" id="cv-pass">👍 Pass</button>
+          <button class="btn btn-vote-fail btn-full" id="cv-fail">👎 Fail</button>
+        </div>
+      </div>
+    `;
+    zone.querySelector('#cv-pass').addEventListener('click', () => {
+      state.roundVotes.pass++;
+      if (state.roundVotes.pass + state.roundVotes.fail >= otherCount) {
+        resolveCustomVote(zone, mode, player);
+      } else { renderActionZone(); }
+    });
+    zone.querySelector('#cv-fail').addEventListener('click', () => {
+      state.roundVotes.fail++;
+      if (state.roundVotes.pass + state.roundVotes.fail >= otherCount) {
+        resolveCustomVote(zone, mode, player);
+      } else { renderActionZone(); }
+    });
+  }
+}
+
+function resolveCustomVote(zone, mode, player) {
+  const passed = state.roundVotes.pass >= state.roundVotes.fail;
+  if (passed) player.safes++; else player.sips++;
+  updateScoreboard();
+  state.gamePhase = 'result';
+  zone.innerHTML = `
+    <div class="round-result animate-fade-in">
+      <span class="round-result-emoji">${passed ? '✓' : '🍺'}</span>
+      <div class="round-result-title">${passed ? `${escapeHTML(player.name)} is safe!` : `${escapeHTML(player.name)} sips!`}</div>
+    </div>
+    <button class="btn btn-primary btn-full" id="cv-next">Next →</button>
+  `;
+  zone.querySelector('#cv-next').addEventListener('click', () => {
+    advanceRound();
+    state.gamePhase = 'idle';
+    clearStatementCard();
+    renderTurnIndicator();
+    updateScoreboard();
+    renderActionZone();
+  });
+}
+
+function renderCustomTimerActions(zone, mode, player) {
+  const duration = mode.timerSeconds || 30;
+  state.timerSeconds = duration;
+
+  zone.innerHTML = `
+    <p style="text-align:center;font-size:13px;color:var(--color-text-muted);">
+      <strong style="color:var(--color-text-primary);">${escapeHTML(player.name)}</strong> has ${duration}s to respond
+    </p>
+    <div class="timer-ring-wrapper">
+      <div class="timer-ring" role="timer" aria-label="Countdown timer">
+        <svg width="90" height="90" viewBox="0 0 90 90">
+          <circle class="timer-ring-bg" cx="45" cy="45" r="38"/>
+          <circle class="timer-ring-progress" id="ct-progress" cx="45" cy="45" r="38"
+            stroke-dasharray="${2 * Math.PI * 38}"
+            stroke-dashoffset="0"
+          />
+        </svg>
+        <div class="timer-number" id="ct-display" aria-live="polite">${duration}</div>
+      </div>
+      <span class="timer-label">seconds</span>
+    </div>
+    <div class="action-pair" id="ct-result-btns" style="display:none;">
+      <button class="btn btn-defend" id="ct-pass">✓ Safe</button>
+      <button class="btn btn-sip" id="ct-fail">✗ Sip</button>
+    </div>
+    <button class="btn btn-secondary btn-full" id="ct-start">▶ Start</button>
+  `;
+
+  const circumference = 2 * Math.PI * 38;
+  zone.querySelector('#ct-start').addEventListener('click', () => {
+    zone.querySelector('#ct-start').classList.add('hidden');
+    let s = duration;
+    state.timerInterval = setInterval(() => {
+      s--;
+      const d = zone.querySelector('#ct-display');
+      const p = zone.querySelector('#ct-progress');
+      if (d) d.textContent = s;
+      if (p) {
+        p.style.strokeDashoffset = circumference * (1 - s / duration);
+        if (s <= 10) p.style.stroke = 'var(--color-accent-rose)';
+      }
+      if (s <= 0) {
+        stopTimer();
+        const rb = zone.querySelector('#ct-result-btns');
+        if (rb) rb.style.display = 'grid';
+      }
+    }, 1000);
+  });
+
+  zone.addEventListener('click', function ctDelegate(e) {
+    const p = e.target.closest('#ct-pass');
+    const f = e.target.closest('#ct-fail');
+    if (!p && !f) return;
+    zone.removeEventListener('click', ctDelegate);
+    stopTimer();
+    if (p) player.safes++; else player.sips++;
+    updateScoreboard();
+    state.gamePhase = 'result';
+    zone.innerHTML = `
+      <div class="round-result animate-fade-in">
+        <span class="round-result-emoji">${p ? '✓' : '🍺'}</span>
+        <div class="round-result-title">${p ? `${escapeHTML(player.name)} safe!` : `${escapeHTML(player.name)} sips!`}</div>
+      </div>
+      <button class="btn btn-primary btn-full" id="ct-next">Next →</button>
+    `;
+    zone.querySelector('#ct-next').addEventListener('click', () => {
+      advanceRound();
+      state.gamePhase = 'idle';
+      clearStatementCard();
+      renderTurnIndicator();
+      updateScoreboard();
+      renderActionZone();
+    });
+  });
+}
+
+function renderCustomSelfDeclareActions(zone, mode, player) {
+  const isAll = !player;
+  if (isAll) {
+    // Everyone self-declares
+    zone.innerHTML = `
+      <p style="text-align:center;font-size:13px;color:var(--color-text-muted);margin-bottom:4px;">Everyone decides their own outcome</p>
+      <div class="action-pair">
+        <button class="btn btn-sip custom-sip-btn btn-full" id="cs-sip-all">🍺 I Sip</button>
+        <button class="btn btn-defend custom-safe-btn btn-full" id="cs-safe-all">✓ I'm Safe</button>
+      </div>
+      <button class="btn btn-secondary btn-full hidden" id="cs-next">Next Round →</button>
+    `;
+    let clicked = 0;
+    zone.querySelector('#cs-sip-all').addEventListener('click', () => {
+      // Just track and move on — no individual tracking in all-players self-declare
+      clicked++;
+      if (clicked >= state.players.length) {
+        zone.querySelector('#cs-next').classList.remove('hidden');
+      }
+    });
+    zone.querySelector('#cs-safe-all').addEventListener('click', () => {
+      clicked++;
+      if (clicked >= state.players.length) {
+        zone.querySelector('#cs-next').classList.remove('hidden');
+      }
+    });
+    zone.querySelector('#cs-next').addEventListener('click', () => {
+      advanceRound();
+      state.gamePhase = 'idle';
+      clearStatementCard();
+      renderTurnIndicator();
+      updateScoreboard();
+      renderActionZone();
+    });
+  } else {
+    zone.innerHTML = `
+      <p style="text-align:center;font-size:13px;color:var(--color-text-muted);">
+        <strong style="color:var(--color-text-primary);">${escapeHTML(player.name)}</strong> — sip or safe?
+      </p>
+      <div class="action-pair">
+        <button class="btn btn-sip btn-full" id="cs-sip">🍺 Sip</button>
+        <button class="btn btn-defend btn-full" id="cs-safe">✓ Safe</button>
+      </div>
+    `;
+    zone.querySelector('#cs-sip').addEventListener('click', () => {
+      player.sips++;
+      updateScoreboard();
+      advanceRound();
+      state.gamePhase = 'idle';
+      clearStatementCard();
+      renderTurnIndicator();
+      renderActionZone();
+    });
+    zone.querySelector('#cs-safe').addEventListener('click', () => {
+      player.safes++;
+      updateScoreboard();
+      advanceRound();
+      state.gamePhase = 'idle';
+      clearStatementCard();
+      renderTurnIndicator();
+      renderActionZone();
+    });
+  }
+}
+
+function renderCustomSimultaneousActions(zone, mode) {
+  const allChosen = state.players.every(p => state.roundChoices[p.name] !== undefined);
+
+  if (!allChosen) {
+    const pending = state.players.find(p => state.roundChoices[p.name] === undefined);
+    zone.innerHTML = `
+      <p style="text-align:center;font-size:13px;color:var(--color-text-muted);">
+        <strong style="color:var(--color-text-primary);">${escapeHTML(pending.name)}</strong> — sip or safe?
+      </p>
+      <div class="action-pair">
+        <button class="btn btn-sip btn-full" data-choice="sip">🍺 Sip</button>
+        <button class="btn btn-defend btn-full" data-choice="safe">✓ Safe</button>
+      </div>
+    `;
+    zone.addEventListener('click', function csimDelegate(e) {
+      const btn = e.target.closest('[data-choice]');
+      if (!btn) return;
+      zone.removeEventListener('click', csimDelegate);
+      state.roundChoices[pending.name] = btn.dataset.choice;
+      renderActionZone();
+    });
+  } else {
+    // Reveal
+    state.players.forEach(p => {
+      const c = state.roundChoices[p.name];
+      if (c === 'sip') p.sips++; else p.safes++;
+    });
+    updateScoreboard();
+    const rows = state.players.map(p =>
+      `<div class="reveal-row">
+        <span class="reveal-player-name">${escapeHTML(p.name)}</span>
+        <span class="reveal-choice ${state.roundChoices[p.name]}">${state.roundChoices[p.name] === 'sip' ? '🍺 Sip' : '✓ Safe'}</span>
+      </div>`
+    ).join('');
+    zone.innerHTML = `
+      <div class="reveal-panel animate-fade-in">${rows}</div>
+      <button class="btn btn-primary btn-full" id="csim-next">Next Round →</button>
+    `;
+    zone.querySelector('#csim-next').addEventListener('click', () => {
+      state.roundChoices = {};
+      state.gamePhase = 'idle';
+      clearStatementCard();
+      advanceRound();
+      renderTurnIndicator();
+      updateScoreboard();
+      renderActionZone();
+    });
+  }
+}
+
+function renderCustomGenericActions(zone, mode, player) {
+  zone.innerHTML = `
+    <div class="custom-action-area">
+      <p style="text-align:center;font-size:14px;color:var(--color-text-secondary);">${escapeHTML(mode.premise || 'Play by your mode rules.')}</p>
+      <div class="action-pair">
+        <button class="btn btn-sip custom-sip-btn btn-full" id="cg-sip">🍺 Sip</button>
+        <button class="btn btn-defend custom-safe-btn btn-full" id="cg-safe">✓ Safe</button>
+      </div>
+    </div>
+  `;
+  zone.querySelector('#cg-sip').addEventListener('click', () => {
+    player.sips++;
+    updateScoreboard();
+    advanceRound();
+    state.gamePhase = 'idle';
+    clearStatementCard();
+    renderTurnIndicator();
+    renderActionZone();
+  });
+  zone.querySelector('#cg-safe').addEventListener('click', () => {
+    player.safes++;
+    updateScoreboard();
+    advanceRound();
+    state.gamePhase = 'idle';
+    clearStatementCard();
+    renderTurnIndicator();
+    renderActionZone();
+  });
+}
+
+// ================================================================
+// === ROUND ADVANCEMENT ===
+// ================================================================
+function advanceRound() {
+  const mode = state.currentMode;
+  const isRotating = (mode?.turns === 'rotating') ||
+                     (mode?.id === 'sip-or-defend') ||
+                     (mode?.id === 'hot-seat');
+  const isRandom = mode?.turns === 'random';
+
+  if (isRotating) {
+    state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
+  } else if (isRandom) {
+    state.currentPlayerIndex = Math.floor(Math.random() * state.players.length);
+  }
+  // 'all' modes: index doesn't change (everyone plays)
+
+  state.round++;
+  updateRoundBadge();
+}
+
+// ================================================================
+// === TIMER UTILITY ===
+// ================================================================
+function stopTimer() {
+  if (state.timerInterval) {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+  }
+}
+
+// ================================================================
+// === END GAME ===
+// ================================================================
+function endGame() {
+  stopTimer();
+  renderEndScreen();
+  showScreen('end');
+}
+
+function renderEndScreen() {
+  const sorted = [...state.players].sort((a, b) => a.sips - b.sips);
+  const winner = sorted[0];
+
+  $('end-title').textContent = 'Game Over!';
+  $('end-subtitle').textContent = `${state.round - 1} rounds played`;
+  $('end-trophy').textContent = '🏆';
+
+  const board = $('end-scoreboard');
+  board.innerHTML = '';
+
+  sorted.forEach((player, idx) => {
+    const row = document.createElement('div');
+    row.className = `end-score-row${idx === 0 ? ' winner' : ''}`;
+    row.setAttribute('aria-label', `${idx + 1}. ${player.name} — ${player.sips} sips, ${player.safes} safe rounds`);
+    row.innerHTML = `
+      <span class="end-rank">${idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`}</span>
+      <span class="end-player-name">${escapeHTML(player.name)}</span>
+      <span class="end-safe-count">${player.safes} safe</span>
+      <span class="end-sip-count">${player.sips} sips</span>
+    `;
+    board.appendChild(row);
+  });
+}
+
+$('btn-play-again').addEventListener('click', () => {
+  // Same players, pick a mode
+  renderModeSelect();
+  showScreen('modeSelect');
+});
+
+$('btn-home-from-end').addEventListener('click', () => {
+  stopTimer();
+  showScreen('home');
+});
+
+// ================================================================
+// === CREATE CUSTOM MODE ===
+// ================================================================
+let selectedResolution = null;
+let selectedWinCondition = null;
+
+function renderCreateMode() {
+  // Reset form
+  $('create-mode-name').value = '';
+  $('create-mode-emoji').value = '';
+  $('create-mode-desc').value = '';
+  $('create-mode-premise').value = '';
+  $('create-mode-turns').value = 'rotating';
+  $('create-mode-error').textContent = '';
+  $('create-mode-error').classList.add('hidden');
+  selectedResolution = null;
+  selectedWinCondition = null;
+
+  $$('.resolution-option').forEach(b => {
+    b.classList.remove('selected');
+    b.setAttribute('aria-pressed', 'false');
+  });
+  $$('.win-condition-option').forEach(b => {
+    b.classList.remove('selected');
+    b.setAttribute('aria-pressed', 'false');
+  });
+
+  $('resolution-config-content').innerHTML = `
+    <p style="font-size:14px;color:var(--color-text-muted);font-style:italic;">Select a resolution type above to configure it.</p>
+  `;
+
+  renderSavedModes();
+  updateModePreview();
+}
+
+function renderSavedModes() {
+  const section = $('saved-modes-section');
+  const list = $('saved-modes-list');
+
+  if (state.customModes.length === 0) {
+    section.classList.add('hidden');
+    return;
+  }
+
+  section.classList.remove('hidden');
+  list.innerHTML = '';
+
+  state.customModes.forEach((mode, idx) => {
+    const item = document.createElement('div');
+    item.className = 'saved-mode-item';
+    item.innerHTML = `
+      <div class="saved-mode-item-icon">${escapeHTML(mode.emoji || '🎮')}</div>
+      <div class="saved-mode-item-text">
+        <div class="saved-mode-item-name">${escapeHTML(mode.name)}</div>
+        <div class="saved-mode-item-sub">${escapeHTML(mode.resolution)} · ${escapeHTML(mode.turns)}</div>
+      </div>
+      <div class="saved-mode-item-actions">
+        <button class="btn btn-ghost btn-sm" data-delete-idx="${idx}" aria-label="Delete ${escapeHTML(mode.name)}">🗑</button>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+
+  list.addEventListener('click', function savedDelegate(e) {
+    const btn = e.target.closest('[data-delete-idx]');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.deleteIdx, 10);
+    state.customModes.splice(idx, 1);
+    saveCustomModes();
+    renderSavedModes();
+    renderModeSelect(); // refresh mode grid
+  });
+}
+
+// Resolution type selection
+$('resolution-type-grid').addEventListener('click', e => {
+  const btn = e.target.closest('.resolution-option');
+  if (!btn) return;
+
+  $$('.resolution-option').forEach(b => {
+    b.classList.remove('selected');
+    b.setAttribute('aria-pressed', 'false');
+  });
+  btn.classList.add('selected');
+  btn.setAttribute('aria-pressed', 'true');
+  selectedResolution = btn.dataset.type;
+
+  renderResolutionConfig(selectedResolution);
+  updateModePreview();
+});
+
+function renderResolutionConfig(type) {
+  const content = $('resolution-config-content');
+
+  switch (type) {
+    case 'timer':
+      content.innerHTML = `
+        <div class="form-group">
+          <label class="form-label" for="config-timer-seconds">Timer duration (seconds)</label>
+          <input type="number" id="config-timer-seconds" class="form-input" value="30" min="5" max="120" step="5">
+          <span class="form-hint">How long does the active player have to respond?</span>
+        </div>
+      `;
+      break;
+
+    case 'vote':
+      content.innerHTML = `
+        <div class="form-group">
+          <label class="form-label" for="config-vote-label-pass">What does a "pass" vote mean?</label>
+          <input type="text" id="config-vote-label-pass" class="form-input" placeholder="e.g. Convincing, Correct, Well said" maxlength="30">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="config-vote-label-fail">What does a "fail" vote mean?</label>
+          <input type="text" id="config-vote-label-fail" class="form-input" placeholder="e.g. Weak, Wrong, Try again" maxlength="30">
+        </div>
+      `;
+      break;
+
+    case 'simultaneous':
+      content.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">What do players choose from?</label>
+          <select class="form-select" id="config-sim-type">
+            <option value="sip-safe">Sip or Safe</option>
+            <option value="agree-disagree">Agree or Disagree</option>
+            <option value="yes-no">Yes or No</option>
+            <option value="hot-cold">Hot Take or Cold Take</option>
+          </select>
+          <span class="form-hint">Players all answer at once, then reveal simultaneously.</span>
+        </div>
+      `;
+      break;
+
+    case 'self':
+      content.innerHTML = `
+        <p style="font-size:14px;color:var(--color-text-secondary);">Players decide their own outcome each round. No voting, no timers — pure self-declaration.</p>
+        <div class="form-group" style="margin-top:var(--spacing-xs);">
+          <label class="form-label" for="config-self-prompt">Sip trigger prompt <span class="text-muted">(optional)</span></label>
+          <input type="text" id="config-self-prompt" class="form-input" placeholder="e.g. Sip if this applies to you" maxlength="60">
+        </div>
+      `;
+      break;
+
+    default:
+      content.innerHTML = `<p style="font-size:14px;color:var(--color-text-muted);font-style:italic;">Select a resolution type above to configure it.</p>`;
+  }
+
+  // Re-attach preview update listeners
+  content.querySelectorAll('input, select, textarea').forEach(el => {
+    el.addEventListener('input', updateModePreview);
+  });
+}
+
+// Win condition selection
+$('win-condition-grid').addEventListener('click', e => {
+  const btn = e.target.closest('.win-condition-option');
+  if (!btn) return;
+
+  $$('.win-condition-option').forEach(b => {
+    b.classList.remove('selected');
+    b.setAttribute('aria-pressed', 'false');
+  });
+  btn.classList.add('selected');
+  btn.setAttribute('aria-pressed', 'true');
+  selectedWinCondition = btn.dataset.condition;
+  updateModePreview();
+});
+
+// Live preview
+function updateModePreview() {
+  const name = $('create-mode-name').value.trim();
+  const emoji = $('create-mode-emoji').value.trim();
+  const desc = $('create-mode-desc').value.trim();
+  const premise = $('create-mode-premise').value.trim();
+
+  const resLabels = {
+    vote: 'Group votes each round',
+    timer: `Timed challenge (${$('config-timer-seconds')?.value || 30}s)`,
+    self: 'Players self-declare outcome',
+    simultaneous: 'Simultaneous reveal',
+  };
+
+  const winLabels = {
+    'fewest-sips': 'Fewest sips wins',
+    'most-points': 'Most safe rounds wins',
+    'survivor': 'Last one standing',
+    'no-winner': 'No winner — just for fun',
+  };
+
+  let preview = '';
+  if (name) preview += `<strong>${escapeHTML(name)}</strong> ${emoji || '🎮'}<br>`;
+  if (desc) preview += `${escapeHTML(desc)}<br>`;
+  if (selectedResolution) preview += `<span style="color:var(--color-primary);">↳ ${resLabels[selectedResolution] || selectedResolution}</span><br>`;
+  if (selectedWinCondition) preview += `<span style="color:var(--color-accent-teal);">↳ ${winLabels[selectedWinCondition] || selectedWinCondition}</span><br>`;
+  if (premise) preview += `<em style="color:var(--color-text-muted);font-size:12px;">"${escapeHTML(premise.substring(0, 80))}${premise.length > 80 ? '...' : ''}"</em>`;
+
+  $('mode-preview-content').innerHTML = preview || 'Fill out the fields above to see a preview.';
+}
+
+// Attach preview listeners to form fields
+['create-mode-name', 'create-mode-emoji', 'create-mode-desc', 'create-mode-premise', 'create-mode-turns']
+  .forEach(id => document.getElementById(id).addEventListener('input', updateModePreview));
+
+// Back from create
+$('btn-back-from-create').addEventListener('click', () => {
+  // Determine where to go back to
+  showScreen('modeSelect');
+});
+
+// Save custom mode
+$('btn-save-custom-mode').addEventListener('click', () => {
+  const name = $('create-mode-name').value.trim();
+  const emoji = $('create-mode-emoji').value.trim() || '🎮';
+  const desc = $('create-mode-desc').value.trim();
+  const premise = $('create-mode-premise').value.trim();
+  const turns = $('create-mode-turns').value;
+
+  const errorEl = $('create-mode-error');
+
+  if (!name) {
+    showCreateError('Please give your mode a name.');
+    $('create-mode-name').focus();
+    return;
+  }
+  if (!selectedResolution) {
+    showCreateError('Please choose how rounds resolve.');
+    return;
+  }
+  if (!selectedWinCondition) {
+    showCreateError('Please choose a win condition.');
+    return;
+  }
+
+  // Gather resolution config
+  let timerSeconds = 30;
+  if (selectedResolution === 'timer') {
+    const t = parseInt($('config-timer-seconds')?.value, 10);
+    if (!isNaN(t) && t >= 5) timerSeconds = t;
+  }
+
+  const newMode = {
+    id: `custom-${Date.now()}`,
+    name,
+    emoji,
+    desc: desc || `Custom mode: ${name}`,
+    premise,
+    resolution: selectedResolution,
+    turns,
+    winCondition: selectedWinCondition,
+    timerSeconds,
+    type: 'custom',
+    iconClass: 'mode-icon-surface',
+    badge: 'badge-purple',
+    badgeText: 'Custom',
+    rules: null, // will be auto-generated
+  };
+
+  state.customModes.push(newMode);
+  saveCustomModes();
+
+  // Flash confirmation
+  const btn = $('btn-save-custom-mode');
+  btn.textContent = '✓ Mode Saved!';
+  btn.classList.remove('btn-primary');
+  btn.classList.add('btn-secondary');
+  setTimeout(() => {
+    btn.textContent = 'Save Mode';
+    btn.classList.add('btn-primary');
+    btn.classList.remove('btn-secondary');
+  }, 2000);
+
+  // Return to mode select after a moment
+  setTimeout(() => {
+    renderModeSelect();
+    showScreen('modeSelect');
+  }, 1500);
+});
+
+function showCreateError(msg) {
+  const el = $('create-mode-error');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  el.classList.add('animate-shake');
+  setTimeout(() => el.classList.remove('animate-shake'), 400);
+}
+
+// ================================================================
+// === UTILITY ===
+// ================================================================
+function escapeHTML(str) {
+  if (typeof str !== 'string') return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// ================================================================
+// === INITIALIZATION ===
+// ================================================================
+function init() {
+  loadCustomModes();
+  loadPremiumStatus();
+
+  // Update statement count on home screen
+  $('stat-statements').textContent = (STATEMENTS.length + SPICY_STATEMENTS.length) + '+';
+
+  // Ensure home screen starts active
+  showScreen('home');
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uncensored Table Talk — The game that exposes what your friends REALLY think</title>
+<meta name="description" content="Uncensored Table Talk is a party game for 2–8 people sharing one phone. Bold statements. No filters. Real talk.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0b0810;
+    --ink-raised:#120d1a;
+    --surface:#171021;
+    --surface-2:#1d1528;
+    --line:#2e2340;
+    --line-soft:#241a32;
+    --text:#f5f1fa;
+    --text-soft:#c9bfd9;
+    --text-muted:#8b7fa0;
+
+    --gold:#e8b84b;
+    --gold-bright:#f6d27a;
+    --gold-ink:#241b04;
+
+    --violet:#a76bff;
+    --violet-bright:#c49fff;
+    --violet-deep:#5a2f99;
+    --violet-ink:#1a0e2e;
+
+    --flame:#ff6b52;
+    --teal:#3ecfb2;
+
+    --c-politics:#6bb3ff;
+    --c-philosophy:#ff8fb3;
+    --c-society:#e8b84b;
+    --c-relationships:#a76bff;
+    --c-culture:#ff9f6b;
+    --c-technology:#3ecfb2;
+    --c-human:#ff5a5a;
+    --c-work:#c9a15c;
+    --c-morality:#d9a5c9;
+
+    --radius-sm:8px;
+    --radius-md:14px;
+    --radius-lg:22px;
+
+    --shadow-md:0 10px 30px rgba(0,0,0,.5);
+    --shadow-lg:0 24px 64px rgba(0,0,0,.6);
+    --ease:cubic-bezier(.22,.68,.35,1);
+  }
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--ink);
+    color:var(--text);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  /* grain + glow atmosphere, standing in for photography */
+  body::before{
+    content:'';
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse 700px 500px at 15% 0%, rgba(167,107,255,.16), transparent 55%),
+      radial-gradient(ellipse 600px 450px at 100% 12%, rgba(232,184,75,.10), transparent 55%),
+      radial-gradient(ellipse 500px 400px at 50% 100%, rgba(167,107,255,.08), transparent 60%);
+    pointer-events:none;
+    z-index:0;
+  }
+  body::after{
+    content:'';
+    position:fixed; inset:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events:none;
+    z-index:0;
+    mix-blend-mode:overlay;
+  }
+
+  img,svg{display:block;max-width:100%}
+  a{color:inherit;text-decoration:none}
+  ul{list-style:none}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+  .display{ font-family:'Anton',sans-serif; text-transform:uppercase; letter-spacing:.01em; line-height:.98 }
+  h2,h3,h4{ font-family:'Anton',sans-serif; text-transform:uppercase; letter-spacing:.01em; line-height:1.05 }
+
+  .eyebrow{
+    font-size:12px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--gold);
+  }
+  .lede{color:var(--text-soft); font-size:17px; max-width:52ch}
+
+  :focus-visible{outline:2px solid var(--gold); outline-offset:3px; border-radius:4px}
+
+  /* ---------- BUTTONS ---------- */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:14px 26px; border-radius:999px; font-family:'Inter'; font-size:15px; font-weight:700;
+    cursor:pointer; border:1px solid transparent; transition:transform .18s var(--ease), background .18s, border-color .18s, box-shadow .18s;
+    white-space:nowrap;
+  }
+  .btn:active{transform:scale(.97)}
+  .btn-gold{ background:linear-gradient(180deg,var(--gold-bright),var(--gold)); color:var(--gold-ink); box-shadow:0 8px 24px rgba(232,184,75,.3) }
+  .btn-gold:hover{ box-shadow:0 12px 30px rgba(232,184,75,.42); transform:translateY(-1px) }
+  .btn-ghost{ background:rgba(245,241,250,.04); border-color:var(--line); color:var(--text-soft) }
+  .btn-ghost:hover{ border-color:var(--violet-bright); color:var(--violet-bright) }
+  .btn-violet{ background:linear-gradient(180deg,var(--violet-bright),var(--violet)); color:#180a2e; box-shadow:0 8px 24px rgba(167,107,255,.3) }
+  .btn-violet:hover{ box-shadow:0 12px 30px rgba(167,107,255,.42); transform:translateY(-1px) }
+  .btn-sm{ padding:10px 18px; font-size:13.5px }
+  .btn-block{ width:100% }
+
+  /* ---------- NAV ---------- */
+  header.nav{
+    position:sticky; top:0; z-index:40;
+    background:rgba(11,8,16,.82); backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .nav-inner{ display:flex; align-items:center; justify-content:space-between; padding:16px 24px; }
+  .brand{ display:flex; align-items:center; gap:10px; font-family:'Anton',sans-serif; font-size:18px; letter-spacing:.02em; text-transform:uppercase }
+  .brand-mark{
+    width:32px; height:32px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 60%, #8a5a10 100%);
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+    box-shadow:0 0 0 1px rgba(232,184,75,.3), 0 4px 14px rgba(232,184,75,.25);
+  }
+  .nav-links{ display:flex; align-items:center; gap:28px; font-size:14px; font-weight:600; color:var(--text-soft) }
+  .nav-links a:hover{ color:var(--gold-bright) }
+  @media (max-width:760px){ .nav-links{ display:none } }
+
+  /* ---------- HERO ---------- */
+  .hero{ position:relative; z-index:1; padding:64px 0 20px; text-align:center }
+  .hero-eyebrow{ font-size:12px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); margin-bottom:14px }
+  .hero-eyebrow b{ color:var(--text) }
+  .hero h1.display{ font-size:clamp(46px,10vw,104px); color:var(--text); text-shadow:0 4px 0 rgba(0,0,0,.4), 0 0 40px rgba(245,241,250,.08) }
+  .hero h1.display .gold-line{
+    display:block;
+    background:linear-gradient(180deg,var(--gold-bright),var(--gold) 60%,#b8862c);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:none;
+    filter:drop-shadow(0 4px 0 rgba(0,0,0,.35));
+  }
+  .hero-sub{ font-size:clamp(16px,2.2vw,20px); color:var(--text-soft); max-width:46ch; margin:22px auto 0; font-weight:500 }
+  .hero-sub em{ font-style:italic; color:var(--violet-bright); font-weight:800 }
+  .hero-ctas{ display:flex; gap:14px; justify-content:center; margin-top:32px; flex-wrap:wrap }
+  .hero-note{ margin-top:16px; font-size:13px; color:var(--text-muted) }
+
+  /* ---------- FLOATING CARDS ---------- */
+  .card-stage{
+    position:relative; margin-top:56px; height:280px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .float-card{
+    position:absolute; width:190px; padding:22px 18px;
+    background:linear-gradient(180deg,var(--surface-2),var(--ink-raised));
+    border-radius:16px; border:1.5px solid var(--edge, var(--gold));
+    box-shadow:0 20px 40px rgba(0,0,0,.5), 0 0 26px var(--glow, rgba(232,184,75,.18));
+    text-align:left;
+  }
+  .float-card .fc-icon{ font-size:20px; margin-bottom:14px }
+  .float-card .fc-text{ font-family:'Inter'; font-weight:700; font-size:15.5px; line-height:1.32; color:var(--text) }
+  .float-card .fc-cat{ margin-top:14px; font-size:10.5px; font-weight:700; letter-spacing:.12em; color:var(--edge, var(--gold)) }
+  .fc-1{ --edge:var(--violet); --glow:rgba(167,107,255,.28); left:6%; top:6%; transform:rotate(-7deg); }
+  .fc-2{ --edge:var(--gold); --glow:rgba(232,184,75,.28); left:50%; top:-8px; transform:translateX(-50%) rotate(1deg); z-index:2; }
+  .fc-3{ --edge:var(--teal); --glow:rgba(62,207,178,.24); right:5%; top:10%; transform:rotate(7deg); }
+  @media (max-width:760px){
+    .card-stage{ height:auto; flex-direction:column; gap:16px; padding:8px 0 }
+    .float-card{ position:static; transform:none !important; width:100%; max-width:280px; margin:0 auto }
+  }
+
+  @keyframes drift{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-8px) } }
+  @media (prefers-reduced-motion:no-preference){
+    .fc-1{ animation:drift 5.5s ease-in-out infinite }
+    .fc-2{ animation:drift 6.5s ease-in-out infinite .3s }
+    .fc-3{ animation:drift 5s ease-in-out infinite .6s }
+  }
+
+  /* ---------- PROMO DUO (2 free / upgrade checklist) ---------- */
+  .promo-duo{
+    display:flex; align-items:center; justify-content:center; gap:28px; flex-wrap:wrap;
+    margin-top:52px; text-align:left;
+  }
+  .promo-badge{
+    width:168px; height:168px; border-radius:50%;
+    border:3px solid var(--gold);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+    background:radial-gradient(circle at 50% 30%, rgba(232,184,75,.1), var(--ink-raised) 70%);
+    padding:14px; flex-shrink:0;
+  }
+  .promo-badge .pb-num{ font-family:'Anton'; font-size:34px; color:var(--gold-bright); text-transform:uppercase; line-height:1 }
+  .promo-badge .pb-label{ font-family:'Anton'; font-size:13px; color:var(--text); text-transform:uppercase; margin-top:2px }
+  .promo-badge .pb-sub{ font-size:9.5px; color:var(--text-muted); letter-spacing:.06em; text-transform:uppercase; margin-top:8px; border-top:1px dashed var(--line); padding-top:6px; width:100% }
+
+  .promo-card{
+    background:var(--surface); border:1px solid var(--gold); border-radius:var(--radius-md);
+    padding:20px 24px; max-width:280px;
+  }
+  .promo-card .pc-head{
+    display:inline-block; background:var(--gold); color:var(--gold-ink);
+    font-family:'Anton'; font-size:13px; letter-spacing:.03em; text-transform:uppercase;
+    padding:6px 14px; border-radius:6px; margin-bottom:14px;
+  }
+  .promo-card ul{ display:flex; flex-direction:column; gap:9px }
+  .promo-card li{ display:flex; gap:8px; font-size:13.5px; color:var(--text-soft); align-items:flex-start }
+  .promo-card li .ck{ color:var(--gold); flex-shrink:0 }
+
+  /* ---------- ICON STAT STRIP ---------- */
+  .stat-strip{
+    position:relative; z-index:1;
+    border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft);
+    background:var(--ink-raised);
+    margin-top:64px;
+  }
+  .stat-strip-inner{ display:flex; flex-wrap:wrap; }
+  .stat-item{
+    flex:1 1 200px; padding:30px 20px; text-align:center;
+    border-right:1px solid var(--line-soft);
+  }
+  .stat-item:last-child{ border-right:none }
+  .stat-item .si-icon{ font-size:26px; margin-bottom:10px }
+  .stat-item .si-num{ font-family:'Anton'; font-size:20px; color:var(--gold-bright); text-transform:uppercase }
+  .stat-item .si-label{ font-family:'Anton'; font-size:13px; color:var(--text); text-transform:uppercase; margin-top:2px; letter-spacing:.01em }
+
+  /* ---------- SECTIONS ---------- */
+  section{ position:relative; z-index:1; padding:100px 0 }
+  .section-head{ max-width:640px; margin-bottom:48px }
+  .section-head h2{ font-size:clamp(28px,3.6vw,40px); margin-top:10px; color:var(--text) }
+
+  /* ---------- MODES ---------- */
+  .modes-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px }
+  @media (max-width:880px){ .modes-grid{ grid-template-columns:repeat(2,1fr) } }
+  @media (max-width:560px){ .modes-grid{ grid-template-columns:1fr } }
+  .mode-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-md);
+    padding:24px; position:relative; transition:border-color .2s, transform .2s;
+  }
+  .mode-card:hover{ border-color:var(--violet); transform:translateY(-2px) }
+  .mode-top{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px }
+  .mode-icon{ font-size:24px }
+  .badge{
+    font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    padding:4px 9px; border-radius:999px;
+  }
+  .badge-free{ background:rgba(232,184,75,.14); color:var(--gold-bright); border:1px solid rgba(232,184,75,.34) }
+  .badge-premium{ background:rgba(167,107,255,.14); color:var(--violet-bright); border:1px solid rgba(167,107,255,.34); display:flex; align-items:center; gap:5px }
+  .badge-spicy{ background:rgba(255,107,82,.15); color:#ff9a86; border:1px solid rgba(255,107,82,.36); display:flex; align-items:center; gap:5px }
+  .mode-name{ font-family:'Anton',sans-serif; font-size:17px; letter-spacing:.01em; margin-bottom:7px; text-transform:uppercase; color:var(--text) }
+  .mode-desc{ font-size:13.5px; color:var(--text-muted); line-height:1.5; font-family:'Inter' }
+
+  /* ---------- CATEGORIES ---------- */
+  .cat-pills{ display:flex; flex-wrap:wrap; gap:10px }
+  .cat-pill{
+    display:flex; align-items:center; gap:9px;
+    background:var(--surface); border:1px solid var(--line); border-radius:999px;
+    padding:10px 16px 10px 12px; font-size:13.5px; color:var(--text-soft);
+  }
+  .cat-pill .sw{ width:9px; height:9px; border-radius:50% }
+
+  /* ---------- PRICING ---------- */
+  .price-note{ font-size:13.5px; color:var(--text-muted); margin-bottom:36px }
+  .pricing-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; align-items:stretch }
+  @media (max-width:900px){ .pricing-grid{ grid-template-columns:1fr; max-width:420px; margin:0 auto } }
+
+  .price-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-lg);
+    padding:30px 26px; display:flex; flex-direction:column;
+  }
+  .price-card.featured{
+    background:linear-gradient(180deg, rgba(167,107,255,.1), var(--surface) 40%);
+    border-color:rgba(167,107,255,.5);
+    box-shadow:0 20px 50px rgba(167,107,255,.14);
+    position:relative;
+  }
+  .price-tag{
+    position:absolute; top:-13px; left:26px;
+    background:var(--violet); color:#180a2e;
+    font-family:'Anton'; font-size:11px; letter-spacing:.03em; text-transform:uppercase;
+    padding:6px 12px; border-radius:999px;
+  }
+  .price-card .tier-name{ font-family:'Anton'; font-size:14px; letter-spacing:.03em; color:var(--text-muted); text-transform:uppercase }
+  .price-card .price-value{ font-family:'Anton'; font-size:42px; margin:10px 0 4px; color:var(--text) }
+  .price-card .price-sub{ font-size:13.5px; color:var(--text-muted); margin-bottom:22px }
+  .price-feats{ display:flex; flex-direction:column; gap:11px; margin-bottom:26px; flex:1 }
+  .price-feats li{ display:flex; gap:10px; font-size:14px; color:var(--text-soft); align-items:flex-start }
+  .price-feats li .ck{ color:var(--gold); flex-shrink:0; margin-top:1px }
+  .price-card.featured .price-feats li .ck{ color:var(--violet-bright) }
+
+  /* ---------- FAQ ---------- */
+  .faq-list{ max-width:760px; display:flex; flex-direction:column; gap:1px; border-top:1px solid var(--line-soft) }
+  .faq-item{ border-bottom:1px solid var(--line-soft) }
+  .faq-item summary{
+    cursor:pointer; list-style:none; padding:22px 4px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    font-family:'Inter',sans-serif; font-size:16px; font-weight:700; color:var(--text);
+  }
+  .faq-item summary::-webkit-details-marker{ display:none }
+  .faq-item summary .plus{ font-size:20px; color:var(--gold); transition:transform .25s; flex-shrink:0 }
+  .faq-item[open] summary .plus{ transform:rotate(45deg) }
+  .faq-item p{ padding:0 4px 22px; color:var(--text-muted); font-size:14.5px; max-width:60ch }
+
+  /* ---------- RIBBON CTA ---------- */
+  .ribbon-cta{ text-align:center; padding:80px 24px 40px; }
+  .ribbon{
+    display:inline-block; font-family:'Anton',sans-serif; text-transform:uppercase;
+    padding:14px 30px; border-radius:4px; transform:rotate(-1deg);
+    font-size:clamp(18px,3vw,28px); letter-spacing:.01em;
+  }
+  .ribbon-violet{ background:var(--violet-deep); color:var(--text); box-shadow:0 10px 26px rgba(90,47,153,.4) }
+  .ribbon-gold{ background:var(--gold); color:var(--gold-ink); transform:rotate(1deg); margin-top:-6px; box-shadow:0 10px 26px rgba(232,184,75,.3) }
+  .ribbon-row{ display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:36px }
+
+  footer{ border-top:1px solid var(--line-soft); padding:36px 24px }
+  .footer-inner{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px }
+  .footer-inner .brand{ font-size:14px }
+  .footer-inner .brand-mark{ width:24px; height:24px; font-size:11px }
+  .footer-fine{ font-size:12.5px; color:var(--text-muted) }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <div class="brand"><span class="brand-mark">🔥</span> Uncensored Table Talk</div>
+    <nav class="nav-links">
+      <a href="#modes">Modes</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="btn btn-gold btn-sm" href="play.html">Play Now</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <p class="hero-eyebrow">Get ready for <b>the conversations you didn't see coming.</b></p>
+      <h1 class="display">
+        Uncensored
+        <span class="gold-line">Table Talk</span>
+      </h1>
+      <p class="hero-sub">The game that exposes what your friends <em>really</em> think.</p>
+
+      <div class="hero-ctas">
+        <a class="btn btn-gold" href="play.html">Play Now — Free</a>
+        <a class="btn btn-ghost" href="#pricing">See Pricing</a>
+      </div>
+      <p class="hero-note">No account needed. One phone, passed around the table.</p>
+
+      <div class="card-stage" aria-hidden="true">
+        <div class="float-card fc-1">
+          <div class="fc-icon">💜</div>
+          <div class="fc-text">Cheating can sometimes be justified.</div>
+          <div class="fc-cat">Relationships</div>
+        </div>
+        <div class="float-card fc-2">
+          <div class="fc-icon">💰</div>
+          <div class="fc-text">Money does buy happiness.</div>
+          <div class="fc-cat">Society</div>
+        </div>
+        <div class="float-card fc-3">
+          <div class="fc-icon">🌐</div>
+          <div class="fc-text">Social media has ruined humanity.</div>
+          <div class="fc-cat">Technology</div>
+        </div>
+      </div>
+
+      <div class="promo-duo">
+        <div class="promo-badge">
+          <span class="pb-num">2</span>
+          <span class="pb-label">Free Modes</span>
+          <span class="pb-sub">Premium modes available</span>
+        </div>
+        <div class="promo-card">
+          <span class="pc-head">Upgrade to Premium</span>
+          <ul>
+            <li><span class="ck">✓</span> 5 exclusive game modes</li>
+            <li><span class="ck">✓</span> 90+ Spicy statements</li>
+            <li><span class="ck">✓</span> More categories</li>
+            <li><span class="ck">✓</span> No ads</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="stat-strip">
+    <div class="wrap stat-strip-inner">
+      <div class="stat-item">
+        <div class="si-icon">💬</div>
+        <div class="si-num">267+</div>
+        <div class="si-label">Controversial Statements</div>
+      </div>
+      <div class="stat-item">
+        <div class="si-icon">👥</div>
+        <div class="si-num">2–8</div>
+        <div class="si-label">Perfect For Any Group Size</div>
+      </div>
+      <div class="stat-item">
+        <div class="si-icon">🔥</div>
+        <div class="si-num">7</div>
+        <div class="si-label">Endless Debate Modes</div>
+      </div>
+      <div class="stat-item">
+        <div class="si-icon">🤝</div>
+        <div class="si-num">100%</div>
+        <div class="si-label">Friendships Tested</div>
+      </div>
+    </div>
+  </div>
+
+  <section id="modes">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Seven ways to lose your filter</p>
+        <h2>One statement bank. Seven very different nights.</h2>
+        <p class="lede" style="margin-top:12px">Classic and Cold Take / Hot Take are free forever. The rest — including Spicy — unlock with Premium.</p>
+      </div>
+
+      <div class="modes-grid">
+        <div class="mode-card">
+          <div class="mode-top"><span class="mode-icon">🎭</span><span class="badge badge-free">Free</span></div>
+          <div class="mode-name">Classic</div>
+          <div class="mode-desc">Generate a statement, vote true or false, and argue it out. No pressure, no penalties.</div>
+        </div>
+        <div class="mode-card">
+          <div class="mode-top"><span class="mode-icon">🌡️</span><span class="badge badge-free">Free</span></div>
+          <div class="mode-name">Cold Take / Hot Take</div>
+          <div class="mode-desc">Secretly label the statement boring or controversial, then reveal together. Outliers defend their read.</div>
+        </div>
+        <div class="mode-card">
+          <div class="mode-top"><span class="mode-icon">🌶️</span><span class="badge badge-spicy">🔒 Premium</span></div>
+          <div class="mode-name">Spicy</div>
+          <div class="mode-desc">Only the juiciest, most controversial statements in the bank. Discussion only — no timers, just heat.</div>
+        </div>
+        <div class="mode-card">
+          <div class="mode-top"><span class="mode-icon">⚔️</span><span class="badge badge-premium">🔒 Premium</span></div>
+          <div class="mode-name">Sip or Defend</div>
+          <div class="mode-desc">Ten seconds to defend the indefensible, or take the sip. A weak defense means you sip anyway.</div>
+        </div>
+        <div class="mode-card">
+          <div class="mode-top"><span class="mode-icon">📊</span><span class="badge badge-premium">🔒 Premium</span></div>
+          <div class="mode-name">Agree-o-Meter</div>
+          <div class="mode-desc">Everyone rates 1–10 at the same time. Furthest from the average has to defend it or sip.</div>
+        </div>
+        <div class="mode-card">
+          <div class="mode-top"><span class="mode-icon">⏱️</span><span class="badge badge-premium">🔒 Premium</span></div>
+          <div class="mode-name">Hot Seat Timer</div>
+          <div class="mode-desc">Thirty seconds to speak on the statement, no silence, no repeating yourself. Fail it and you sip.</div>
+        </div>
+        <div class="mode-card">
+          <div class="mode-top"><span class="mode-icon">🛠️</span><span class="badge badge-premium">🔒 Premium</span></div>
+          <div class="mode-name">Create Your Own Mode</div>
+          <div class="mode-desc">Build a custom game on the statement bank — your own timer, voting rules, and win conditions.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="categories" style="padding-top:0">
+    <div class="wrap">
+      <div class="section-head" style="margin-bottom:28px">
+        <p class="eyebrow">What's in the bank right now</p>
+        <h2>267+ statements, nine categories.</h2>
+      </div>
+      <div class="cat-pills">
+        <span class="cat-pill"><span class="sw" style="background:var(--c-politics)"></span>Politics</span>
+        <span class="cat-pill"><span class="sw" style="background:var(--c-philosophy)"></span>Philosophy</span>
+        <span class="cat-pill"><span class="sw" style="background:var(--c-relationships)"></span>Relationships</span>
+        <span class="cat-pill"><span class="sw" style="background:var(--c-society)"></span>Society</span>
+        <span class="cat-pill"><span class="sw" style="background:var(--c-culture)"></span>Culture</span>
+        <span class="cat-pill"><span class="sw" style="background:var(--c-technology)"></span>Technology</span>
+        <span class="cat-pill"><span class="sw" style="background:var(--c-human)"></span>Human nature</span>
+        <span class="cat-pill"><span class="sw" style="background:var(--c-work)"></span>Work &amp; ambition</span>
+        <span class="cat-pill"><span class="sw" style="background:var(--c-morality)"></span>Morality</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Get more out of the table</p>
+        <h2>More statements. More modes. More arguments.</h2>
+      </div>
+      <p class="price-note">One-time purchases. No subscription. Unlocked inside the app.</p>
+
+      <div class="pricing-grid">
+        <div class="price-card">
+          <p class="tier-name">Statement Pack Mini</p>
+          <p class="price-value">$1.99</p>
+          <p class="price-sub">A top-up for whatever modes you've already got.</p>
+          <ul class="price-feats">
+            <li><span class="ck">✓</span> 99 new statements</li>
+            <li><span class="ck">✓</span> Same nine categories, new material</li>
+            <li><span class="ck">✓</span> Works with any mode you own</li>
+          </ul>
+          <a class="btn btn-ghost btn-block" href="play.html">Unlock in app</a>
+        </div>
+
+        <div class="price-card">
+          <p class="tier-name">Statement Pack Plus</p>
+          <p class="price-value">$2.99</p>
+          <p class="price-sub">For groups that play often and hate repeats.</p>
+          <ul class="price-feats">
+            <li><span class="ck">✓</span> 249 new statements</li>
+            <li><span class="ck">✓</span> Best statements per dollar</li>
+            <li><span class="ck">✓</span> Works with any mode you own</li>
+          </ul>
+          <a class="btn btn-ghost btn-block" href="play.html">Unlock in app</a>
+        </div>
+
+        <div class="price-card featured">
+          <span class="price-tag">Full Experience</span>
+          <p class="tier-name">Premium</p>
+          <p class="price-value">$5.99</p>
+          <p class="price-sub">Everything, in one purchase.</p>
+          <ul class="price-feats">
+            <li><span class="ck">✓</span> 200+ statements included</li>
+            <li><span class="ck">✓</span> All 7 game modes unlocked, incl. Spicy</li>
+            <li><span class="ck">✓</span> Create Your Own Mode — build custom games</li>
+            <li><span class="ck">✓</span> Free updates to future modes</li>
+          </ul>
+          <a class="btn btn-violet btn-block" href="play.html">Get Premium</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Questions</p>
+        <h2>Before you buy in</h2>
+      </div>
+      <div class="faq-list">
+        <details class="faq-item" open>
+          <summary>Do I have to pay to play? <span class="plus">+</span></summary>
+          <p>No. Classic and Cold Take / Hot Take are free forever, drawing from the full 267+ statement bank.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What does Premium actually unlock? <span class="plus">+</span></summary>
+          <p>All 7 game modes — including Spicy and Create Your Own Mode — plus a bundle of 200+ statements, all for a single $5.99 purchase.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What's the difference between Premium and a Statement Pack? <span class="plus">+</span></summary>
+          <p>Premium unlocks the modes plus a statement bundle. Statement Packs are pure content — more rounds for whichever modes you've already got.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Can I buy a pack without Premium? <span class="plus">+</span></summary>
+          <p>Yes. Packs add statements to Classic and Cold Take / Hot Take even on the free tier.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Is this a subscription? <span class="plus">+</span></summary>
+          <p>No. Every purchase — Premium or a Statement Pack — is a one-time unlock, forever.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How many players does it need? <span class="plus">+</span></summary>
+          <p>Works solo, but it's built for 2–8 people sharing one phone. More players means more chaos.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="ribbon-cta">
+  <div class="ribbon-row">
+    <span class="ribbon ribbon-violet">One phone. Your friends. No filters.</span>
+    <span class="ribbon ribbon-gold">Real talk.</span>
+  </div>
+  <a class="btn btn-gold" href="play.html">Play Now — Free</a>
+</div>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="brand"><span class="brand-mark">🔥</span> Uncensored Table Talk</div>
+    <p class="footer-fine">Built for 2–8 players. Perspectives are starting points, not verdicts.</p>
+  </div>
+</footer>
+
+</body>
+</html>
