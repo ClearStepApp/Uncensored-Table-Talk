@@ -1659,10 +1659,10 @@
     <div class="home-stats" aria-label="App statistics">
       <div class="home-stat">
         <span class="home-stat-number" id="stat-statements">180+</span>
-        <span class="home-stat-label">Statements</span>
+        <span class="home-stat-label" id="stat-statements-label">Statements</span>
       </div>
       <div class="home-stat">
-        <span class="home-stat-number">6</span>
+        <span class="home-stat-number">7</span>
         <span class="home-stat-label">Game Modes</span>
       </div>
       <div class="home-stat">
@@ -1670,6 +1670,10 @@
         <span class="home-stat-label">Players</span>
       </div>
     </div>
+
+    <p id="free-tier-hint" class="hidden" style="text-align:center; font-size:12.5px; color:var(--color-text-muted); margin-top:-6px; margin-bottom:var(--spacing-sm);">
+      🔒 Free play unlocks 50 of 267+ statements. <a href="#" id="link-free-tier-upgrade" style="color:var(--color-accent-gold); text-decoration:underline;">Get Premium for the rest →</a>
+    </p>
 
     <div class="home-actions">
       <button class="btn btn-primary btn-full btn-lg" id="btn-start-game" aria-label="Start a new game">
@@ -2018,6 +2022,9 @@ const state = {
 
 // Modes available on the free tier — everything else requires Premium.
 const FREE_MODE_IDS = ['classic', 'cold-hot-take'];
+
+// Free tier only draws from the first N statements in the main pool — Premium unlocks the rest.
+const FREE_STATEMENT_CAP = 50;
 
 // ================================================================
 // === STATEMENT POOL ===
@@ -2534,6 +2541,7 @@ $('btn-premium-dev-toggle').addEventListener('click', () => {
   state.premiumUnlocked = true;
   savePremiumStatus();
   renderModeSelect();
+  updateHomeStats();
   const action = pendingLockedAction;
   closePremiumModal();
   if (action) action();
@@ -2879,7 +2887,10 @@ function clearStatementCard() {
 // ================================================================
 function getRandomStatement() {
   const isSpicy = state.currentMode && state.currentMode.statementPool === 'spicy';
-  const pool = isSpicy ? SPICY_STATEMENTS : STATEMENTS;
+  let pool = isSpicy ? SPICY_STATEMENTS : STATEMENTS;
+  if (!isSpicy && !state.premiumUnlocked) {
+    pool = STATEMENTS.slice(0, FREE_STATEMENT_CAP);
+  }
   const usedSet = isSpicy ? state.usedSpicyStatements : state.usedStatements;
 
   const allIndexes = pool
@@ -4112,12 +4123,33 @@ function escapeHTML(str) {
 // ================================================================
 // === INITIALIZATION ===
 // ================================================================
+function updateHomeStats() {
+  const totalCount = STATEMENTS.length + SPICY_STATEMENTS.length;
+  const hint = $('free-tier-hint');
+
+  if (state.premiumUnlocked) {
+    $('stat-statements').textContent = totalCount + '+';
+    $('stat-statements-label').textContent = 'Statements';
+    hint.classList.add('hidden');
+  } else {
+    $('stat-statements').textContent = FREE_STATEMENT_CAP;
+    $('stat-statements-label').textContent = 'Free Statements';
+    hint.textContent = '';
+    hint.innerHTML = `🔒 Free play unlocks ${FREE_STATEMENT_CAP} of ${totalCount}+ statements. <a href="#" id="link-free-tier-upgrade" style="color:var(--color-accent-gold); text-decoration:underline;">Get Premium for the rest →</a>`;
+    hint.classList.remove('hidden');
+    $('link-free-tier-upgrade').addEventListener('click', (e) => {
+      e.preventDefault();
+      openPremiumModal('Premium unlocks the full statement library, every game mode, and Create Your Own Mode for a one-time $5.99.');
+    });
+  }
+}
+
 function init() {
   loadCustomModes();
   loadPremiumStatus();
 
   // Update statement count on home screen
-  $('stat-statements').textContent = (STATEMENTS.length + SPICY_STATEMENTS.length) + '+';
+  updateHomeStats();
 
   // Ensure home screen starts active
   showScreen('home');
