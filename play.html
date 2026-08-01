@@ -767,6 +767,51 @@
       color: var(--color-text-secondary);
     }
 
+    .license-box {
+      margin-top: var(--spacing-md);
+      padding-top: var(--spacing-md);
+      border-top: 1px solid var(--color-border);
+      text-align: left;
+    }
+
+    .license-label {
+      font-size: 12.5px;
+      color: var(--color-text-muted);
+      margin-bottom: 8px;
+    }
+
+    .license-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .license-input {
+      flex: 1;
+      min-width: 0;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font-size: 13px;
+      font-family: var(--font-primary);
+    }
+
+    .license-input:focus {
+      outline: none;
+      border-color: var(--color-accent-gold);
+    }
+
+    .license-status {
+      margin-top: 10px;
+      font-size: 12.5px;
+      line-height: 1.4;
+    }
+
+    .license-status.status-success { color: var(--color-accent-teal); }
+    .license-status.status-error { color: var(--color-danger); }
+    .license-status.status-pending { color: var(--color-text-muted); }
+
     /* ======================================================
        SCREEN: RULES
     ====================================================== */
@@ -1982,14 +2027,22 @@
   <div class="modal-card">
     <div class="modal-icon" aria-hidden="true">🔒</div>
     <h3 id="premium-modal-title">Premium Mode</h3>
-    <p id="premium-modal-body">This mode is part of Statement Oracle Premium. Unlock every game mode, Create Your Own Mode, and 200+ statements for a one-time $5.99.</p>
+    <p id="premium-modal-body">This mode is part of Uncensored Table Talk Premium. Unlock every game mode, Create Your Own Mode, and the full statement library for a one-time $5.99.</p>
     <div class="modal-actions">
-      <button class="btn btn-primary btn-full" id="btn-premium-modal-upgrade">Unlock Premium — $5.99</button>
+      <a class="btn btn-primary btn-full" id="btn-premium-modal-upgrade" href="https://stoffegud.gumroad.com/l/utt_game?wanted=true" target="_blank" rel="noopener">Unlock Premium — $5.99</a>
       <button class="btn btn-ghost btn-full" id="btn-premium-modal-close">Maybe later</button>
     </div>
+
+    <div class="license-box">
+      <p class="license-label">Already purchased? Enter your license key:</p>
+      <div class="license-row">
+        <input type="text" id="license-key-input" class="license-input" placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX" autocomplete="off" autocapitalize="off" spellcheck="false">
+        <button class="btn btn-gold btn-sm" id="btn-license-activate" type="button">Activate</button>
+      </div>
+      <p id="license-status" class="license-status hidden"></p>
+    </div>
+
     <div class="modal-dev-note">
-      Preview build — no payment is wired up yet.
-      <br>
       <button id="btn-premium-dev-toggle" type="button">Simulate unlock (dev preview)</button>
     </div>
   </div>
@@ -2522,6 +2575,7 @@ let pendingLockedAction = null; // fn to run if the person unlocks premium from 
 function openPremiumModal(bodyText, onUnlock) {
   if (bodyText) $('premium-modal-body').textContent = bodyText;
   pendingLockedAction = onUnlock || null;
+  resetLicenseStatus();
   $('premium-modal').classList.add('active');
 }
 
@@ -2532,19 +2586,111 @@ function closePremiumModal() {
 
 $('btn-premium-modal-close').addEventListener('click', closePremiumModal);
 
-$('btn-premium-modal-upgrade').addEventListener('click', () => {
-  // No payment processor is wired up yet — this is where a real checkout would launch.
-  closePremiumModal();
-});
-
 $('btn-premium-dev-toggle').addEventListener('click', () => {
-  state.premiumUnlocked = true;
-  savePremiumStatus();
-  renderModeSelect();
-  updateHomeStats();
+  unlockPremium();
   const action = pendingLockedAction;
   closePremiumModal();
   if (action) action();
+});
+
+// ================================================================
+// === GUMROAD LICENSE VERIFICATION ===
+// ================================================================
+const GUMROAD_PRODUCT_ID = '6nV-SpoPZC9yf3K9s4uxbg==';
+// How many separate devices a single license key may activate on.
+// This isn't bulletproof (no secret key is exposed client-side, so it can't be
+// perfectly enforced), but it stops casual key-sharing while still covering
+// "I lost my phone and need to reactivate on a new one."
+const DEVICE_ACTIVATION_CAP = 3;
+
+function setLicenseStatus(message, type) {
+  const el = $('license-status');
+  el.textContent = message;
+  el.className = 'license-status' + (type ? ' status-' + type : '');
+  el.classList.remove('hidden');
+}
+
+function resetLicenseStatus() {
+  const el = $('license-status');
+  el.textContent = '';
+  el.classList.add('hidden');
+  $('license-key-input').value = '';
+}
+
+function unlockPremium(licenseKey) {
+  state.premiumUnlocked = true;
+  savePremiumStatus();
+  if (licenseKey) {
+    try { localStorage.setItem('so_license_key', licenseKey); } catch(e) {}
+  }
+  renderModeSelect();
+  updateHomeStats();
+}
+
+async function verifyLicenseKey(key) {
+  const body = new URLSearchParams();
+  body.append('product_id', GUMROAD_PRODUCT_ID);
+  body.append('license_key', key);
+  body.append('increment_uses_count', 'true');
+
+  const res = await fetch('https://api.gumroad.com/v2/licenses/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString(),
+  });
+
+  // Gumroad returns 404 with success:false for a key that doesn't exist.
+  const data = await res.json().catch(() => ({ success: false }));
+  return data;
+}
+
+async function handleLicenseActivate() {
+  const input = $('license-key-input');
+  const key = input.value.trim();
+  const btn = $('btn-license-activate');
+
+  if (!key) {
+    setLicenseStatus('Enter your license key first.', 'error');
+    return;
+  }
+
+  btn.disabled = true;
+  setLicenseStatus('Verifying…', 'pending');
+
+  try {
+    const data = await verifyLicenseKey(key);
+
+    if (!data.success) {
+      setLicenseStatus('That key doesn\'t look right. Double check it and try again.', 'error');
+      btn.disabled = false;
+      return;
+    }
+
+    if (typeof data.uses === 'number' && data.uses > DEVICE_ACTIVATION_CAP) {
+      setLicenseStatus(`This key has already been activated on ${DEVICE_ACTIVATION_CAP} devices. Contact support if you need help.`, 'error');
+      btn.disabled = false;
+      return;
+    }
+
+    setLicenseStatus('✓ Premium unlocked! Enjoy the full game.', 'success');
+    unlockPremium(key);
+    const action = pendingLockedAction;
+    setTimeout(() => {
+      closePremiumModal();
+      if (action) action();
+    }, 900);
+  } catch (e) {
+    setLicenseStatus('Couldn\'t reach the license server. Check your connection and try again.', 'error');
+    btn.disabled = false;
+  }
+}
+
+$('btn-license-activate').addEventListener('click', handleLicenseActivate);
+$('license-key-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    handleLicenseActivate();
+  }
 });
 
 // ================================================================
