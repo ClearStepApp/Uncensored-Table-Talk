@@ -1703,11 +1703,11 @@
 
     <div class="home-stats" aria-label="App statistics">
       <div class="home-stat">
-        <span class="home-stat-number" id="stat-statements">180+</span>
+        <span class="home-stat-number" id="stat-statements">420+</span>
         <span class="home-stat-label" id="stat-statements-label">Statements</span>
       </div>
       <div class="home-stat">
-        <span class="home-stat-number">7</span>
+        <span class="home-stat-number">9</span>
         <span class="home-stat-label">Game Modes</span>
       </div>
       <div class="home-stat">
@@ -1717,7 +1717,7 @@
     </div>
 
     <p id="free-tier-hint" class="hidden" style="text-align:center; font-size:12.5px; color:var(--color-text-muted); margin-top:-6px; margin-bottom:var(--spacing-sm);">
-      🔒 Free play unlocks 50 of 267+ statements. <a href="#" id="link-free-tier-upgrade" style="color:var(--color-accent-gold); text-decoration:underline;">Get Premium for the rest →</a>
+      🔒 Free play unlocks 50 of 420+ statements. <a href="#" id="link-free-tier-upgrade" style="color:var(--color-accent-gold); text-decoration:underline;">Get Premium for the rest →</a>
     </p>
 
     <div class="home-actions">
@@ -2042,7 +2042,24 @@
       <p id="license-status" class="license-status hidden"></p>
     </div>
 
- 
+    <div class="modal-dev-note hidden" id="modal-dev-note">
+      <button id="btn-premium-dev-toggle" type="button">Simulate unlock (dev preview)</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     18+ AGE GATE MODAL
+============================================================ -->
+<div class="modal-overlay" id="age-gate-modal" role="dialog" aria-modal="true" aria-labelledby="age-gate-title">
+  <div class="modal-card">
+    <div class="modal-icon" aria-hidden="true">🔞</div>
+    <h3 id="age-gate-title">18+ Mode</h3>
+    <p id="age-gate-body">This mode contains mature, dating and relationship-themed statements meant for adults. Please confirm everyone playing is 18 or older.</p>
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-full" id="btn-age-confirm">I'm 18+ — Continue</button>
+      <button class="btn btn-ghost btn-full" id="btn-age-cancel">Go back</button>
+    </div>
   </div>
 </div>
 
@@ -2052,76 +2069,27 @@
 // ================================================================
 // === STATE ===
 // ================================================================
-// Protected state - prevents direct modification from console
-const state = (function() {
-  const privateState = {
-    players: [],
-    currentPlayerIndex: 0,
-    round: 1,
-    currentMode: null,
-    currentStatement: null,
-    usedStatements: new Set(),
-    usedSpicyStatements: new Set(),
-    gamePhase: 'idle',
-    timerInterval: null,
-    timerSeconds: 0,
-    roundChoices: {},
-    roundVotes: { pass: 0, fail: 0 },
-    customModes: [],
-    pendingCustomMode: null,
-    _premiumUnlocked: false, // Private property
-  };
-
-  return {
-    // Getter for premiumUnlocked
-    get premiumUnlocked() {
-      return privateState._premiumUnlocked;
-    },
-    // Setter with protection
-    set premiumUnlocked(value) {
-      const stack = new Error().stack || '';
-      const isInternalCall = stack.includes('unlockPremium') || 
-                             stack.includes('checkPremiumStatus');
-      
-      if (!isInternalCall) {
-        console.warn('🔒 Cannot modify premium status from console.');
-        return;
-      }
-      privateState._premiumUnlocked = value;
-    },
-    // Allow reading other state properties
-    get players() { return privateState.players; },
-    get currentPlayerIndex() { return privateState.currentPlayerIndex; },
-    get round() { return privateState.round; },
-    get currentMode() { return privateState.currentMode; },
-    get currentStatement() { return privateState.currentStatement; },
-    get usedStatements() { return privateState.usedStatements; },
-    get usedSpicyStatements() { return privateState.usedSpicyStatements; },
-    get gamePhase() { return privateState.gamePhase; },
-    get timerInterval() { return privateState.timerInterval; },
-    get timerSeconds() { return privateState.timerSeconds; },
-    get roundChoices() { return privateState.roundChoices; },
-    get roundVotes() { return privateState.roundVotes; },
-    get customModes() { return privateState.customModes; },
-    get pendingCustomMode() { return privateState.pendingCustomMode; },
-    
-    // Setters for non-premium properties (allow internal use)
-    set players(val) { privateState.players = val; },
-    set currentPlayerIndex(val) { privateState.currentPlayerIndex = val; },
-    set round(val) { privateState.round = val; },
-    set currentMode(val) { privateState.currentMode = val; },
-    set currentStatement(val) { privateState.currentStatement = val; },
-    set usedStatements(val) { privateState.usedStatements = val; },
-    set usedSpicyStatements(val) { privateState.usedSpicyStatements = val; },
-    set gamePhase(val) { privateState.gamePhase = val; },
-    set timerInterval(val) { privateState.timerInterval = val; },
-    set timerSeconds(val) { privateState.timerSeconds = val; },
-    set roundChoices(val) { privateState.roundChoices = val; },
-    set roundVotes(val) { privateState.roundVotes = val; },
-    set customModes(val) { privateState.customModes = val; },
-    set pendingCustomMode(val) { privateState.pendingCustomMode = val; },
-  };
-})();
+const state = {
+  players: [],          // array of { name, sips, safes }
+  currentPlayerIndex: 0,
+  round: 1,
+  currentMode: null,    // mode object
+  currentStatement: null,
+  usedStatements: new Set(),
+  usedSpicyStatements: new Set(),
+  usedGNOStatements: new Set(),
+  usedBNOStatements: new Set(),
+  gamePhase: 'idle',    // idle | statement | action | vote | result | reveal
+  timerInterval: null,
+  timerSeconds: 0,
+  // Per-round data
+  roundChoices: {},     // { playerName: choice }
+  roundVotes: { pass: 0, fail: 0 },
+  customModes: [],      // persisted to localStorage
+  pendingCustomMode: null, // mode being built
+  premiumUnlocked: false, // gates non-free modes + Create Your Own; persisted to localStorage
+  ageConfirmed: false,    // gates 18+ modes (Spicy-adjacent packs); persisted to localStorage
+};
 
 // Modes available on the free tier — everything else requires Premium.
 const FREE_MODE_IDS = ['classic', 'cold-hot-take'];
@@ -2426,6 +2394,177 @@ const SPICY_STATEMENTS = [
 ];
 
 // ================================================================
+// === GIRLS NIGHT OUT — 18+ pool (starter set, expand before shipping) ===
+// ================================================================
+const GNO_STATEMENTS = [
+  { category: 'Dating', text: "Your ex texting 'u up?' deserves a reply just to mess with him." },
+  { category: 'Dating', text: 'Red flags are more attractive than people admit.' },
+  { category: 'Relationships', text: "You've stayed in a relationship longer than you should have because the sex was good." },
+  { category: 'Friendship', text: 'Getting ready together is better than the actual night out.' },
+  { category: 'Friendship', text: "Your friend's boyfriend is not as great as she thinks he is." },
+  { category: 'Relationships', text: 'A hall pass would ruin more relationships than it would save.' },
+  { category: 'Dating', text: "The 'situationship' is just commitment with extra steps you're both avoiding." },
+  { category: 'Dating', text: "Being someone's rebound isn't always a bad thing." },
+  { category: 'Relationships', text: "You'd rather know about a partner's entire ex list than not know." },
+  { category: 'Friendship', text: "Girls' trips reveal more about a friendship than years of texting." },
+  { category: 'Dating', text: "You've swiped right on someone purely for their looks, no shame." },
+  { category: 'Dating', text: "A guy who says he's 'not like other guys' usually is." },
+  { category: 'Relationships', text: "You've cried over a breakup that, looking back, wasn't even that deep." },
+  { category: 'Friendship', text: "Sleeping with a friend's ex is unforgivable, no matter the circumstances." },
+  { category: 'Dating', text: 'Texting back within five minutes makes you look too available.' },
+  { category: 'Relationships', text: 'Marriage is more about timing than actually finding "the one."' },
+  { category: 'Dating', text: "You've stayed friends with an ex specifically to keep your options open." },
+  { category: 'Confidence', text: 'A confident text beats a perfect one, every time.' },
+  { category: 'Relationships', text: "You'd forgive a lie easier than you'd forgive being embarrassed in public." },
+  { category: 'Dating', text: "The 'we're just talking' phase is where most people get hurt the worst." },
+  { category: 'Dating', text: "A situationship ending badly still counts as a real breakup." },
+  { category: 'Dating', text: "You've stalked an ex's new partner's Instagram more than once." },
+  { category: 'Friendship', text: "Group chats know about a breakup before some family members do." },
+  { category: 'Relationships', text: "You'd choose a partner who makes you laugh over one who makes you feel safe." },
+  { category: 'Confidence', text: "Wearing your 'ex outfit' on a night out is a power move, not pettiness." },
+  { category: 'Friendship', text: "You've given advice to a friend that you'd never actually take yourself." },
+  { category: 'Relationships', text: "A 'no drama' relationship sounds boring more than it sounds healthy." },
+  { category: 'Dating', text: "You've matched with someone just to see if they'd swipe on you." },
+  { category: 'Friendship', text: "Being the 'fun friend' gets exhausting faster than people admit." },
+  { category: 'Dating', text: "You've let a bad date happen just for the free meal." },
+  { category: 'Family', text: "Your mother's opinion of a partner matters more than you'd like to admit." },
+  { category: 'Friendship', text: "A destination bachelorette is worth going into debt for." },
+  { category: 'Dating', text: "You've unfollowed someone purely because they're dating your ex." },
+  { category: 'Dating', text: "Splitting the bill on a first date says more about a person than the date itself." },
+  { category: 'Relationships', text: "You'd rather be single at 35 than settle." },
+  { category: 'Friendship', text: "A friend's engagement can bring out jealousy you didn't know you had." },
+  { category: 'Friendship', text: "You've pretended to love a friend's partner for the sake of the friendship." },
+  { category: 'Dating', text: "Your 'type' has never actually been good for you." },
+  { category: 'Relationships', text: "You've kept a relationship going past its expiration date out of comfort." },
+  { category: 'Relationships', text: "Getting matching tattoos with a partner is a red flag, not romance." },
+  { category: 'Relationships', text: "You'd rather find out about a cheating partner from your friends than catch them yourself." },
+  { category: 'Relationships', text: "A joint bank account with a partner is scarier than moving in together." },
+  { category: 'Friendship', text: "You've judged a friend's partner within the first five minutes of meeting them." },
+  { category: 'Relationships', text: "Taking a 'break' in a relationship rarely ends in getting back together." },
+  { category: 'Friendship', text: "You've stayed up all night analyzing a text with your friends." },
+  { category: 'Dating', text: "A woman's 'crazy ex' story is usually more nuanced than she lets on." },
+  { category: 'Dating', text: "You'd rather date someone with more money than someone with more free time." },
+  { category: 'Dating', text: "You've pretended to be over someone way before you actually were." },
+  { category: 'Friendship', text: "Being single on your friend's wedding day is harder than admitting it." },
+  { category: 'Relationships', text: "A partner who doesn't get along with your friends is a bigger problem than one who doesn't get along with your family." },
+  { category: 'Dating', text: "You've compared a new partner to an ex out loud, even when you tried not to." },
+  { category: 'Confidence', text: "Freezing your eggs is a more responsible decision than most people give it credit for." },
+  { category: 'Friendship', text: "You'd end a friendship over how someone treated you during a breakup." },
+  { category: 'Dating', text: "You've googled someone before a first date more thoroughly than you'd admit." },
+  { category: 'Relationships', text: "A promise ring is just a way to avoid an actual commitment." },
+  { category: 'Dating', text: "You've stayed friends with someone specifically to make an ex jealous." },
+  { category: 'Confidence', text: "Girls who say they have 'no filter' usually just have no boundaries." },
+  { category: 'Relationships', text: "You'd rather your partner have a messy past than a boring one." },
+  { category: 'Confidence', text: "Choosing your career over a relationship is something you don't regret, even when it's lonely." },
+  { category: 'Friendship', text: "You've let a friend's opinion of your partner influence your relationship more than you should have." },
+  { category: 'Friendship', text: "A destination wedding is selfish, no matter how beautiful the venue is." },
+  { category: 'Nights Out', text: "You've faked a headache to avoid a night out you didn't want to go to." },
+  { category: 'Friendship', text: "Dating a friend's sibling is worth risking the friendship for, if it's right." },
+  { category: 'Dating', text: "You'd rather be ghosted than get a lengthy 'it's not you, it's me' text." },
+  { category: 'Friendship', text: "Your friend group has a 'villain era' story about every single one of you." },
+  { category: 'Confidence', text: "A woman who's 'not like other girls' is usually overcompensating." },
+  { category: 'Nights Out', text: "You've stayed quiet at a party while your friend embarrassed herself, just to enjoy the show." },
+  { category: 'Confidence', text: "Getting Botox before 30 is just preventative, not vain." },
+  { category: 'Relationships', text: "You'd rather your partner remember an important date late than not at all." },
+  { category: 'Dating', text: "A guy's height matters more to you than you'd say out loud." },
+  { category: 'Nights Out', text: "You've used a night out as an excuse to avoid a hard conversation at home." },
+  { category: 'Confidence', text: "Choosing to stay child-free is the most honest decision some women ever make." },
+  { category: 'Dating', text: "You'd take relationship advice from a stranger on the internet over your own mother." },
+  { category: 'Relationships', text: "A 'we were on a break' excuse has never actually held up." },
+  { category: 'Dating', text: "You've let a crush ruin your ability to focus on anything else for days." },
+  { category: 'Dating', text: "Being 'the ex' in someone's story is a role you've played more than once." },
+  { category: 'Friendship', text: "You'd rather your friends dislike your partner honestly than pretend to like them." },
+  { category: 'Friendship', text: "A girls' night without at least one crying moment feels incomplete." },
+  { category: 'Friendship', text: "You've stayed in touch with an ex's family longer than you stayed in touch with the ex." },
+];
+
+// ================================================================
+// === BOYS NIGHT OUT — 18+ pool (starter set, expand before shipping) ===
+// ================================================================
+const BNO_STATEMENTS = [
+  { category: 'Dating', text: 'Most guys exaggerate their body count.' },
+  { category: 'Friendship', text: "You've stayed friends with a guy who treats women badly and said nothing." },
+  { category: 'Nights Out', text: 'Buying the first round is basically a personality trait.' },
+  { category: 'Dating', text: "You've lied about your height on a dating app." },
+  { category: 'Nights Out', text: "A bachelor party without at least one bad decision is a wasted trip." },
+  { category: 'Friendship', text: 'Guys are more emotionally honest with each other drunk than sober.' },
+  { category: 'Friendship', text: "You'd rather find out your friend's partner is bad news from someone else, not him." },
+  { category: 'Dating', text: "Chasing someone who's not interested is more common than admitting defeat." },
+  { category: 'Dating', text: "You've ghosted someone purely because texting back felt like effort." },
+  { category: 'Friendship', text: '"Bros before partners" is a rule most guys break eventually.' },
+  { category: 'Dating', text: "You've faked being busy to avoid a second date." },
+  { category: 'Friendship', text: 'Talking about your ex on a night out with the guys is basically therapy.' },
+  { category: 'Confidence', text: 'Most guys size up every other guy in the room before saying a word.' },
+  { category: 'Friendship', text: "You'd take a hit to your ego over a hit to your reputation with the group chat." },
+  { category: 'Friendship', text: 'Guys nights get real the moment someone brings up a breakup.' },
+  { category: 'Dating', text: 'A confident opening line works better than a clever one.' },
+  { category: 'Relationships', text: "You've stayed quiet about a friend's relationship red flags to avoid the drama." },
+  { category: 'Nights Out', text: 'Peer pressure on a night out has led you to a genuinely bad decision.' },
+  { category: 'Dating', text: "You'd rather get rejected in person than left on read." },
+  { category: 'Confidence', text: 'Confidence gets more respect from other guys than actual success does.' },
+  { category: 'Friendship', text: "You'd rather get roasted by your friends than admit you're wrong." },
+  { category: 'Friendship', text: "Every group of guys has one friend who's bad at texting back and everyone just accepts it." },
+  { category: 'Friendship', text: "You've let a friend take the blame for something that was partly your fault." },
+  { category: 'Dating', text: "Buying a round for a girl you just met is never really 'no strings attached.'" },
+  { category: 'Relationships', text: "You'd rather lose an argument with your partner than actually win it." },
+  { category: 'Confidence', text: "A guy's car says more about his insecurities than his personality." },
+  { category: 'Nights Out', text: "You've exaggerated a story from a night out to make it sound better." },
+  { category: 'Friendship', text: "Watching sports together counts as quality time, no matter what anyone says." },
+  { category: 'Confidence', text: "You'd rather admit you're lost than ask for directions in front of your friends." },
+  { category: 'Dating', text: "A guy who talks about his ex too much on a first date is a red flag everyone ignores." },
+  { category: 'Friendship', text: "You've stayed in a group chat purely out of loyalty, even when it's mostly noise." },
+  { category: 'Nights Out', text: "Splitting the bill evenly, even when someone barely ate, avoids more drama than it causes." },
+  { category: 'Friendship', text: "You'd rather your friends roast you to your face than talk behind your back." },
+  { category: 'Confidence', text: "A guy who cries at movies is more trustworthy than one who never does." },
+  { category: 'Friendship', text: "You've let a friend's bad advice guide a major decision." },
+  { category: 'Friendship', text: "Working out together is the closest some guys get to real vulnerability." },
+  { category: 'Relationships', text: "You'd rather be single and broke than in a relationship and broke." },
+  { category: 'Dating', text: "A guy who still hangs out with his ex's friends has unfinished business." },
+  { category: 'Friendship', text: "You've pretended to understand a joke in a group just to avoid asking." },
+  { category: 'Nights Out', text: "Being the designated driver is a bigger flex than people give it credit for." },
+  { category: 'Confidence', text: "You'd rather take a bad joke at your own expense than let a silence sit." },
+  { category: 'Friendship', text: "A guy who never picks a restaurant has no real personality, according to his friends." },
+  { category: 'Friendship', text: "You've let competitiveness ruin a friendly game more than once." },
+  { category: 'Nights Out', text: "Talking trash before a game is basically part of the sport." },
+  { category: 'Friendship', text: "You'd rather your friends know you're struggling than pretend everything's fine." },
+  { category: 'Friendship', text: "A guy's fantasy football league is more serious to him than most of his relationships." },
+  { category: 'Friendship', text: "You've stayed friends with someone purely because you've known them forever, not because you actually like them now." },
+  { category: 'Friendship', text: "Admitting you're wrong to your friends is harder than admitting it to a partner." },
+  { category: 'Friendship', text: "You'd rather get stood up than be the one who cancels last minute." },
+  { category: 'Friendship', text: "A guy who never buys a round eventually gets phased out of the group." },
+  { category: 'Friendship', text: "You've let a friend's relationship drama become the whole group's problem." },
+  { category: 'Friendship', text: "Being loyal to a bad friend longer than you should have is something every guy has done." },
+  { category: 'Confidence', text: "You'd rather be roasted for your dating history than your fashion sense." },
+  { category: 'Dating', text: "A guy who talks a big game about women usually has the least experience." },
+  { category: 'Confidence', text: "You've faked confidence in a room full of strangers more than you'd admit." },
+  { category: 'Friendship', text: "Group trips reveal who your real friends are faster than anything else." },
+  { category: 'Nights Out', text: "You'd rather lie about being busy than admit you don't want to go out." },
+  { category: 'Confidence', text: "A guy who's always 'about to get serious' about a career never actually does." },
+  { category: 'Friendship', text: "You've let your friends talk you into a bad idea because backing out felt worse." },
+  { category: 'Friendship', text: "Being the guy who remembers everyone's birthday is rarer, and more respected, than people admit." },
+  { category: 'Nights Out', text: "You'd rather take a hit financially than look cheap in front of your friends." },
+  { category: 'Friendship', text: "A guy's group chat name says more about the group than anyone wants to admit." },
+  { category: 'Friendship', text: "You've stayed quiet about a friend's bad decision just to avoid the conversation." },
+  { category: 'Confidence', text: "Getting emotional at a wedding toast is more common than guys let on." },
+  { category: 'Confidence', text: "You'd rather be known as 'the wild one' than 'the boring one' in your friend group." },
+  { category: 'Confidence', text: "A guy who still talks about his high school glory days hasn't moved on from something bigger." },
+  { category: 'Friendship', text: "You've let a competitive streak turn a game night into an actual argument." },
+  { category: 'Dating', text: "Being able to cook is a bigger dating advantage than most guys realize." },
+  { category: 'Friendship', text: "You'd rather admit a mistake to your friends over a beer than in a serious conversation." },
+  { category: 'Confidence', text: "A guy's reaction to losing says more about him than his reaction to winning." },
+  { category: 'Friendship', text: "You've stayed in a friend group longer than it served you, out of habit." },
+  { category: 'Nights Out', text: "Guys who overshare after a few drinks usually needed to say it sober." },
+  { category: 'Confidence', text: "You'd rather your friends see you cry once than see you fake being fine for years." },
+  { category: 'Relationships', text: "A guy who never apologizes first isn't winning, he's just avoiding." },
+  { category: 'Relationships', text: "You've let 'the guys' talk you out of a good relationship decision." },
+  { category: 'Friendship', text: "Being broke with good friends beats being comfortable with people who don't get you." },
+  { category: 'Friendship', text: "You'd rather get called out by your friends in private than embarrassed in public." },
+  { category: 'Confidence', text: "A guy's playlist on a road trip says more about him than his job title does." },
+  { category: 'Friendship', text: "You've stayed loyal to a friend everyone else gave up on." },
+  { category: 'Confidence', text: "Admitting you need help moving is harder for some guys than admitting relationship problems." },
+];
+
+// ================================================================
 // === BUILT-IN GAME MODES ===
 // ================================================================
 const BUILTIN_MODES = [
@@ -2549,6 +2688,50 @@ const BUILTIN_MODES = [
     turns: 'all',
     statementPool: 'spicy',
   },
+  {
+    id: 'girls-night-out',
+    name: 'Girls Night Out',
+    emoji: '💅',
+    iconClass: 'mode-icon-rose',
+    badge: 'badge-spicy',
+    badgeText: '18+',
+    ageRestricted: true,
+    desc: 'Dating, exes, red flags, and friendship drama. Extra spicy, girls-night themed. 18+ only.',
+    rules: [
+      '18+ mode — contains mature, dating and relationship-themed statements.',
+      'Pulls exclusively from the Girls Night Out pool.',
+      'A statement is generated for everyone.',
+      'Take turns sharing your honest take — agree, disagree, spill the tea.',
+      'No voting or sipping — it\'s pure, unfiltered conversation.',
+      'Anyone can pass on a statement that\'s too much and generate the next one.',
+    ],
+    type: 'builtin',
+    resolution: 'classic',
+    turns: 'all',
+    statementPool: 'gno',
+  },
+  {
+    id: 'boys-night-out',
+    name: 'Boys Night Out',
+    emoji: '🥂',
+    iconClass: 'mode-icon-blue',
+    badge: 'badge-spicy',
+    badgeText: '18+',
+    ageRestricted: true,
+    desc: 'Dating, friendship loyalty, and nights-out chaos. Extra spicy, guys-night themed. 18+ only.',
+    rules: [
+      '18+ mode — contains mature, dating and relationship-themed statements.',
+      'Pulls exclusively from the Boys Night Out pool.',
+      'A statement is generated for everyone.',
+      'Take turns sharing your honest take — agree, disagree, no judgment.',
+      'No voting or sipping — it\'s pure, unfiltered conversation.',
+      'Anyone can pass on a statement that\'s too much and generate the next one.',
+    ],
+    type: 'builtin',
+    resolution: 'classic',
+    turns: 'all',
+    statementPool: 'bno',
+  },
 ];
 
 // ================================================================
@@ -2620,6 +2803,67 @@ function isModeLocked(mode) {
   return !FREE_MODE_IDS.includes(mode.id);
 }
 
+// ================================================================
+// === 18+ AGE GATE ===
+// ================================================================
+function saveAgeStatus() {
+  try {
+    localStorage.setItem('so_age_confirmed', state.ageConfirmed ? '1' : '0');
+  } catch(e) { /* silently fail if storage unavailable */ }
+}
+
+function loadAgeStatus() {
+  try {
+    state.ageConfirmed = localStorage.getItem('so_age_confirmed') === '1';
+  } catch(e) { state.ageConfirmed = false; }
+}
+
+let pendingAgeAction = null; // fn to run once the person confirms they're 18+
+
+function openAgeGateModal(onConfirm) {
+  pendingAgeAction = onConfirm || null;
+  $('age-gate-modal').classList.add('active');
+}
+
+function closeAgeGateModal() {
+  $('age-gate-modal').classList.remove('active');
+  pendingAgeAction = null;
+}
+
+$('btn-age-cancel').addEventListener('click', closeAgeGateModal);
+
+$('btn-age-confirm').addEventListener('click', () => {
+  state.ageConfirmed = true;
+  saveAgeStatus();
+  const action = pendingAgeAction;
+  closeAgeGateModal();
+  if (action) action();
+});
+
+// Central entry point for launching a mode — handles the Premium lock and the
+// 18+ gate (in that order) before actually opening the rules screen.
+function enterMode(mode) {
+  const goToRules = () => {
+    state.currentMode = mode;
+    renderRulesScreen(mode);
+    showScreen('rules');
+  };
+
+  const proceedPastPremium = () => {
+    if (mode.ageRestricted && !state.ageConfirmed) {
+      openAgeGateModal(goToRules);
+    } else {
+      goToRules();
+    }
+  };
+
+  if (isModeLocked(mode)) {
+    openPremiumModal(`${mode.name} is part of Premium. Unlock every game mode, Create Your Own Mode, and 420+ statements for a one-time $5.99.`, proceedPastPremium);
+  } else {
+    proceedPastPremium();
+  }
+}
+
 let pendingLockedAction = null; // fn to run if the person unlocks premium from the modal
 
 function openPremiumModal(bodyText, onUnlock) {
@@ -2636,7 +2880,12 @@ function closePremiumModal() {
 
 $('btn-premium-modal-close').addEventListener('click', closePremiumModal);
 
-
+$('btn-premium-dev-toggle').addEventListener('click', () => {
+  unlockPremium();
+  const action = pendingLockedAction;
+  closePremiumModal();
+  if (action) action();
+});
 
 // ================================================================
 // === GUMROAD LICENSE VERIFICATION ===
@@ -2748,7 +2997,7 @@ $('btn-start-game').addEventListener('click', () => {
 
 $('btn-create-mode-home').addEventListener('click', () => {
   if (!state.premiumUnlocked) {
-    openPremiumModal('Create Your Own Mode is part of Premium. Unlock it, plus every game mode and 200+ statements, for a one-time $5.99.', () => {
+    openPremiumModal('Create Your Own Mode is part of Premium. Unlock it, plus every game mode and 420+ statements, for a one-time $5.99.', () => {
       renderCreateMode();
       showScreen('createMode');
     });
@@ -2866,7 +3115,7 @@ function renderModeSelect() {
   `;
   createCard.addEventListener('click', () => {
     if (createLocked) {
-      openPremiumModal('Create Your Own Mode is part of Premium. Unlock it, plus every game mode and 200+ statements, for a one-time $5.99.', () => {
+      openPremiumModal('Create Your Own Mode is part of Premium. Unlock it, plus every game mode and 420+ statements, for a one-time $5.99.', () => {
         renderCreateMode();
         showScreen('createMode');
       });
@@ -2884,30 +3133,26 @@ function createModeCard(mode) {
   card.className = 'mode-card' + (locked ? ' mode-locked' : '');
   card.setAttribute('aria-label', locked ? `${mode.name} — Premium mode, locked` : `Play ${mode.name}`);
   card.dataset.modeId = mode.id;
+
+  let badgeHTML = '';
+  if (locked) {
+    badgeHTML = '<span class="mode-lock-badge">🔒 Premium</span>';
+  } else if (mode.ageRestricted) {
+    badgeHTML = '<span class="mode-lock-badge">🔞 18+</span>';
+  }
+
   card.innerHTML = `
     <div class="mode-icon ${mode.iconClass || 'mode-icon-surface'}">${mode.emoji || '🎮'}</div>
     <div class="mode-text">
       <div class="mode-name-row">
         <div class="mode-name">${escapeHTML(mode.name)}</div>
-        ${locked ? '<span class="mode-lock-badge">🔒 Premium</span>' : ''}
+        ${badgeHTML}
       </div>
       <p class="mode-desc">${escapeHTML(mode.desc || '')}</p>
     </div>
     <span class="mode-arrow" aria-hidden="true">→</span>
   `;
-  card.addEventListener('click', () => {
-    if (locked) {
-      openPremiumModal(`${mode.name} is part of Premium. Unlock every game mode, Create Your Own Mode, and 200+ statements for a one-time $5.99.`, () => {
-        state.currentMode = mode;
-        renderRulesScreen(mode);
-        showScreen('rules');
-      });
-      return;
-    }
-    state.currentMode = mode;
-    renderRulesScreen(mode);
-    showScreen('rules');
-  });
+  card.addEventListener('click', () => enterMode(mode));
   return card;
 }
 
@@ -2992,6 +3237,8 @@ function startGame() {
   state.round = 1;
   state.usedStatements.clear();
   state.usedSpicyStatements.clear();
+  state.usedGNOStatements.clear();
+  state.usedBNOStatements.clear();
   state.roundChoices = {};
   state.roundVotes = { pass: 0, fail: 0 };
   state.gamePhase = 'idle';
@@ -3077,12 +3324,22 @@ function clearStatementCard() {
 // === STATEMENT ENGINE ===
 // ================================================================
 function getRandomStatement() {
-  const isSpicy = state.currentMode && state.currentMode.statementPool === 'spicy';
-  let pool = isSpicy ? SPICY_STATEMENTS : STATEMENTS;
-  if (!isSpicy && !state.premiumUnlocked) {
-    pool = STATEMENTS.slice(0, FREE_STATEMENT_CAP);
+  const poolId = state.currentMode ? state.currentMode.statementPool : null;
+
+  const POOL_MAP = {
+    spicy: { data: SPICY_STATEMENTS, usedSet: state.usedSpicyStatements },
+    gno: { data: GNO_STATEMENTS, usedSet: state.usedGNOStatements },
+    bno: { data: BNO_STATEMENTS, usedSet: state.usedBNOStatements },
+  };
+
+  let pool, usedSet;
+  if (poolId && POOL_MAP[poolId]) {
+    pool = POOL_MAP[poolId].data;
+    usedSet = POOL_MAP[poolId].usedSet;
+  } else {
+    pool = state.premiumUnlocked ? STATEMENTS : STATEMENTS.slice(0, FREE_STATEMENT_CAP);
+    usedSet = state.usedStatements;
   }
-  const usedSet = isSpicy ? state.usedSpicyStatements : state.usedStatements;
 
   const allIndexes = pool
     .map((s, i) => i)
@@ -4315,7 +4572,7 @@ function escapeHTML(str) {
 // === INITIALIZATION ===
 // ================================================================
 function updateHomeStats() {
-  const totalCount = STATEMENTS.length + SPICY_STATEMENTS.length;
+  const totalCount = STATEMENTS.length + SPICY_STATEMENTS.length + GNO_STATEMENTS.length + BNO_STATEMENTS.length;
   const hint = $('free-tier-hint');
 
   if (state.premiumUnlocked) {
@@ -4338,6 +4595,15 @@ function updateHomeStats() {
 function init() {
   loadCustomModes();
   loadPremiumStatus();
+  loadAgeStatus();
+
+  // Dev-only: reveal the "simulate unlock" toggle only when explicitly requested,
+  // e.g. play.html?dev=1 — never visible to normal players.
+  try {
+    if (new URLSearchParams(window.location.search).get('dev') === '1') {
+      $('modal-dev-note').classList.remove('hidden');
+    }
+  } catch(e) { /* ignore */ }
 
   // Update statement count on home screen
   updateHomeStats();
