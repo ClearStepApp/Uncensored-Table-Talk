@@ -2042,9 +2042,7 @@
       <p id="license-status" class="license-status hidden"></p>
     </div>
 
-    <div class="modal-dev-note">
-      <button id="btn-premium-dev-toggle" type="button">Simulate unlock (dev preview)</button>
-    </div>
+ 
   </div>
 </div>
 
@@ -2054,24 +2052,76 @@
 // ================================================================
 // === STATE ===
 // ================================================================
-const state = {
-  players: [],          // array of { name, sips, safes }
-  currentPlayerIndex: 0,
-  round: 1,
-  currentMode: null,    // mode object
-  currentStatement: null,
-  usedStatements: new Set(),
-  usedSpicyStatements: new Set(),
-  gamePhase: 'idle',    // idle | statement | action | vote | result | reveal
-  timerInterval: null,
-  timerSeconds: 0,
-  // Per-round data
-  roundChoices: {},     // { playerName: choice }
-  roundVotes: { pass: 0, fail: 0 },
-  customModes: [],      // persisted to localStorage
-  pendingCustomMode: null, // mode being built
-  premiumUnlocked: false, // gates non-free modes + Create Your Own; persisted to localStorage
-};
+// Protected state - prevents direct modification from console
+const state = (function() {
+  const privateState = {
+    players: [],
+    currentPlayerIndex: 0,
+    round: 1,
+    currentMode: null,
+    currentStatement: null,
+    usedStatements: new Set(),
+    usedSpicyStatements: new Set(),
+    gamePhase: 'idle',
+    timerInterval: null,
+    timerSeconds: 0,
+    roundChoices: {},
+    roundVotes: { pass: 0, fail: 0 },
+    customModes: [],
+    pendingCustomMode: null,
+    _premiumUnlocked: false, // Private property
+  };
+
+  return {
+    // Getter for premiumUnlocked
+    get premiumUnlocked() {
+      return privateState._premiumUnlocked;
+    },
+    // Setter with protection
+    set premiumUnlocked(value) {
+      const stack = new Error().stack || '';
+      const isInternalCall = stack.includes('unlockPremium') || 
+                             stack.includes('checkPremiumStatus');
+      
+      if (!isInternalCall) {
+        console.warn('🔒 Cannot modify premium status from console.');
+        return;
+      }
+      privateState._premiumUnlocked = value;
+    },
+    // Allow reading other state properties
+    get players() { return privateState.players; },
+    get currentPlayerIndex() { return privateState.currentPlayerIndex; },
+    get round() { return privateState.round; },
+    get currentMode() { return privateState.currentMode; },
+    get currentStatement() { return privateState.currentStatement; },
+    get usedStatements() { return privateState.usedStatements; },
+    get usedSpicyStatements() { return privateState.usedSpicyStatements; },
+    get gamePhase() { return privateState.gamePhase; },
+    get timerInterval() { return privateState.timerInterval; },
+    get timerSeconds() { return privateState.timerSeconds; },
+    get roundChoices() { return privateState.roundChoices; },
+    get roundVotes() { return privateState.roundVotes; },
+    get customModes() { return privateState.customModes; },
+    get pendingCustomMode() { return privateState.pendingCustomMode; },
+    
+    // Setters for non-premium properties (allow internal use)
+    set players(val) { privateState.players = val; },
+    set currentPlayerIndex(val) { privateState.currentPlayerIndex = val; },
+    set round(val) { privateState.round = val; },
+    set currentMode(val) { privateState.currentMode = val; },
+    set currentStatement(val) { privateState.currentStatement = val; },
+    set usedStatements(val) { privateState.usedStatements = val; },
+    set usedSpicyStatements(val) { privateState.usedSpicyStatements = val; },
+    set gamePhase(val) { privateState.gamePhase = val; },
+    set timerInterval(val) { privateState.timerInterval = val; },
+    set timerSeconds(val) { privateState.timerSeconds = val; },
+    set roundChoices(val) { privateState.roundChoices = val; },
+    set roundVotes(val) { privateState.roundVotes = val; },
+    set customModes(val) { privateState.customModes = val; },
+    set pendingCustomMode(val) { privateState.pendingCustomMode = val; },
+  };
+})();
 
 // Modes available on the free tier — everything else requires Premium.
 const FREE_MODE_IDS = ['classic', 'cold-hot-take'];
@@ -2586,12 +2636,7 @@ function closePremiumModal() {
 
 $('btn-premium-modal-close').addEventListener('click', closePremiumModal);
 
-$('btn-premium-dev-toggle').addEventListener('click', () => {
-  unlockPremium();
-  const action = pendingLockedAction;
-  closePremiumModal();
-  if (action) action();
-});
+
 
 // ================================================================
 // === GUMROAD LICENSE VERIFICATION ===
